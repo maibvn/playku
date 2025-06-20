@@ -1,38 +1,32 @@
-const { adminGraphql } = require("./graphql");
+import { adminGraphql } from "./graphql.js";
 
-async function createAudioUrlMetafieldDefinition() {
-  const mutation = `
-    mutation metafieldDefinitionCreate($definition: MetafieldDefinitionInput!) {
-      metafieldDefinitionCreate(definition: $definition) {
-        createdDefinition {
-          id
-          name
-          namespace
-          key
-        }
-        userErrors {
-          field
-          message
-        }
+export async function ensureAudioMetafieldDefinition(admin) {
+  // Query for existing definition
+  const query = `
+    query {
+      metafieldDefinitions(first: 1, namespace: "app--playku", key: "audio_url", ownerType: PRODUCT) {
+        edges { node { id } }
       }
     }
   `;
-  const variables = {
-    definition: {
-      name: "Audio Preview URL",
-      namespace: "app--playku",
-      key: "audio_url",
-      description: "Audio preview URL for PlayKu player",
-      ownerType: "PRODUCT",
-      type: "single_line_text_field",
-      visibleToStorefrontApi: true,
-      access: {
-        admin: true,
-        storefront: true,
-      },
-    },
-  };
-  return await adminGraphql(mutation, variables);
+  const data = await adminGraphql(admin, query);
+  if (data.metafieldDefinitions.edges.length === 0) {
+    // Create definition if not found
+    const mutation = `
+      mutation {
+        metafieldDefinitionCreate(definition: {
+          name: "Audio Preview URL",
+          namespace: "app--playku",
+          key: "audio_url",
+          description: "Audio preview URL for PlayKu player",
+          ownerType: PRODUCT,
+          type: "single_line_text_field",
+        }) {
+          createdDefinition { id }
+          userErrors { field message }
+        }
+      }
+    `;
+    await adminGraphql(admin, mutation);
+  }
 }
-
-module.exports = { createAudioUrlMetafieldDefinition };
