@@ -1,8 +1,8 @@
 import { adminGraphql } from "./graphql.js";
+import prisma from "../../db.server.js";
 
 /**
- * Fetches products with their audio_url metafield.
- * @param {object} admin - The authenticated admin object.
+ * Fetches products from Shopify and attaches audioUrl from your database.
  */
 export async function getProductsWithAudio(admin) {
   const query = `
@@ -11,16 +11,9 @@ export async function getProductsWithAudio(admin) {
         edges {
           node {
             id
+            handle
             title
             images(first: 1) { edges { node { src } } }
-            metafields(namespace: "playku", first: 1) {
-              edges {
-                node {
-                  key
-                  value
-                }
-              }
-            }
           }
         }
       }
@@ -28,76 +21,54 @@ export async function getProductsWithAudio(admin) {
   `;
   const data = await adminGraphql(admin, query, {});
 
-  return data.products.edges.map(({ node }) => ({
+  // Get all product IDs from Shopify
+  const products = data.products.edges.map(({ node }) => ({
     id: node.id,
+    handle: node.handle,
     title: node.title,
-    image: node.images.edges[0]?.node.src,
-    audioUrl:
-      node.metafields.edges.find((mf) => mf.node.key === "audio_url")?.node
-        .value || "",
+    image: node.images.edges[0]?.node.src || "",
+  }));
+
+  // Fetch all audio URLs from your DB for these products
+  const dbAudios = await prisma.productAudio.findMany({
+    where: { id: { in: products.map((p) => p.id) } },
+  });
+
+  // Map DB audio URLs by product ID
+  const audioMap = Object.fromEntries(dbAudios.map((a) => [a.id, a.audioUrl]));
+
+  // Attach audioUrl to each product
+  return products.map((p) => ({
+    ...p,
+    audioUrl: audioMap[p.id] || "",
   }));
 }
 
 /**
- * Updates the audio_url metafield for a product.
- * @param {object} admin - The authenticated admin object.
- * @param {string} productId - The Shopify product ID.
- * @param {string} audioUrl - The new audio URL to set.
+ * Updates or creates the audio_url for a product in your database.
  */
-export async function updateProductAudio(admin, productId, audioUrl) {
-  const mutation = `
-    mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
-      metafieldsSet(metafields: $metafields) {
-        metafields {
-          id
-          key
-          value
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-  const variables = {
-    metafields: [
-      {
-        ownerId: productId,
-        namespace: "playku",
-        key: "audio_url",
-        type: "single_line_text_field",
-        value: audioUrl,
-      },
-    ],
-  };
-  const data = await adminGraphql(admin, mutation, variables);
-  if (data.metafieldsSet.userErrors.length) {
-    throw new Error(JSON.stringify(data.metafieldsSet.userErrors));
-  }
-  return data.metafieldsSet.metafields[0];
+export async function updateProductAudio(
+  productId,
+  handle,
+  title,
+  image,
+  audioUrl,
+  userId,
+) {
+  return prisma.productAudio.upsert({
+    where: { id: productId },
+    update: { handle, title, image, audioUrl, userId },
+    create: { id: productId, handle, title, image, audioUrl, userId },
+  });
 }
+
 // getAudioUrlByHandle.js
-export async function getAudioUrlByHandle(admin, handle) {
-  const query = `
-    query GetAudioUrl($handle: String!) {
-      productByHandle(handle: $handle) {
-        id
-        metafield(namespace: "playku", key: "audio_url") {
-          value
-        }
-      }
-    }
-  `;
-
-  const variables = { handle };
-
-  const result = await adminGraphql(admin, query, variables);
-
-  if (!result?.productByHandle) {
-    throw new Error(`Product not found for handle: ${handle}`);
-  }
-
-  const audioUrl = result.productByHandle.metafield?.value || null;
-  return audioUrl;
+export async function getAudioUrlByHandle(handle, userId) {
+  const dbAudio = await prisma.productAudio.findUnique({
+    where: { handle_userId: { handle, userId } },
+    select: { audioUrl: true, title: true },
+  });
+  return dbAudio
+    ? { audioUrl: dbAudio.audioUrl, title: dbAudio.title }
+    : { audioUrl: null, title: null };
 }

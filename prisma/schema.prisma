@@ -31,9 +31,20 @@ model Session {
   emailVerified Boolean?  @default(false)
 }
 
+model User {
+  id        String   @id
+  shop      String   @unique
+  audios    ProductAudio[]
+}
+
 model ProductAudio {
-  id           String   @id @default(cuid())
-  productId    String
-  audioUrl     String
-  createdAt    DateTime @default(now())
+  id        String   @id
+  handle    String
+  title     String
+  image     String?
+  audioUrl  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([handle, userId])
 }
