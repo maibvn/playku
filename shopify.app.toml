@@ -3,7 +3,7 @@
 client_id = "b4b4a851dda6d20e1babfeea1f9e2eb3"
 name = "PlayKu"
 handle = "playku"
-application_url = "https://intent-ui-alignment-horizontal.trycloudflare.com"
+application_url = "https://nightlife-cheat-spiritual-compound.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://intent-ui-alignment-horizontal.trycloudflare.com/auth/callback",
-  "https://intent-ui-alignment-horizontal.trycloudflare.com/auth/shopify/callback",
-  "https://intent-ui-alignment-horizontal.trycloudflare.com/api/auth/callback"
+  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/auth/callback",
+  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/auth/shopify/callback",
+  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
