@@ -1,0 +1,6 @@
+.playku-play-icon {
+  transition: background 0.2s;
+}
+.playku-play-icon:hover {
+  background: rgba(0,0,0,0.8);
+}

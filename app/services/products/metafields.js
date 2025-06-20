@@ -4,7 +4,7 @@ export async function ensureAudioMetafieldDefinition(admin) {
   // Query for existing definition
   const query = `
     query {
-      metafieldDefinitions(first: 1, namespace: "app--playku", key: "audio_url", ownerType: PRODUCT) {
+      metafieldDefinitions(first: 1, namespace: "playku", key: "audio_url", ownerType: PRODUCT) {
         edges { node { id } }
       }
     }
@@ -16,7 +16,7 @@ export async function ensureAudioMetafieldDefinition(admin) {
       mutation {
         metafieldDefinitionCreate(definition: {
           name: "Audio Preview URL",
-          namespace: "app--playku",
+          namespace: "playku",
           key: "audio_url",
           description: "Audio preview URL for PlayKu player",
           ownerType: PRODUCT,

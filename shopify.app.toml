@@ -3,7 +3,7 @@
 client_id = "b4b4a851dda6d20e1babfeea1f9e2eb3"
 name = "PlayKu"
 handle = "playku"
-application_url = "https://nightlife-cheat-spiritual-compound.trycloudflare.com"
+application_url = "https://deep-there-saturday-foto.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,10 +27,16 @@ scopes = "write_products, read_products, read_metaobject_definitions, write_meta
 
 [auth]
 redirect_urls = [
-  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/auth/callback",
-  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/auth/shopify/callback",
-  "https://nightlife-cheat-spiritual-compound.trycloudflare.com/api/auth/callback"
+  "https://deep-there-saturday-foto.trycloudflare.com/auth/callback",
+  "https://deep-there-saturday-foto.trycloudflare.com/auth/shopify/callback",
+  "https://deep-there-saturday-foto.trycloudflare.com/api/auth/callback"
 ]
+
+
+[app_proxy]
+url = "hhttps://deep-there-saturday-foto.trycloudflare.com/app-proxy/playku"
+subpath = "playku"
+prefix = "apps"
 
 [pos]
 embedded = false

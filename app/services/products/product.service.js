@@ -13,7 +13,7 @@ export async function getProductsWithAudio(admin) {
             id
             title
             images(first: 1) { edges { node { src } } }
-            metafields(namespace: "app--playku", first: 1) {
+            metafields(namespace: "playku", first: 1) {
               edges {
                 node {
                   key
@@ -64,7 +64,7 @@ export async function updateProductAudio(admin, productId, audioUrl) {
     metafields: [
       {
         ownerId: productId,
-        namespace: "app--playku",
+        namespace: "playku",
         key: "audio_url",
         type: "single_line_text_field",
         value: audioUrl,
@@ -76,4 +76,28 @@ export async function updateProductAudio(admin, productId, audioUrl) {
     throw new Error(JSON.stringify(data.metafieldsSet.userErrors));
   }
   return data.metafieldsSet.metafields[0];
+}
+// getAudioUrlByHandle.js
+export async function getAudioUrlByHandle(admin, handle) {
+  const query = `
+    query GetAudioUrl($handle: String!) {
+      productByHandle(handle: $handle) {
+        id
+        metafield(namespace: "playku", key: "audio_url") {
+          value
+        }
+      }
+    }
+  `;
+
+  const variables = { handle };
+
+  const result = await adminGraphql(admin, query, variables);
+
+  if (!result?.productByHandle) {
+    throw new Error(`Product not found for handle: ${handle}`);
+  }
+
+  const audioUrl = result.productByHandle.metafield?.value || null;
+  return audioUrl;
 }
