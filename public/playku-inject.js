@@ -3,91 +3,107 @@
   window.PlayKuInjected = true;
 
   const ICON_CLASS = "playku-play-icon";
+  const PLAYLIST_KEY = "playku:playlist";
+  const CURRENT_HANDLE_KEY = "playku:currentHandle";
+  const CURRENT_TIME_KEY = "playku:currentTime";
 
-  function extractHandle(url) {
-    return url?.split("/products/")[1]?.split("?")[0]?.replace("/", "") || null;
-  }
+  const SELECTORS = [
+    "a[href*='/products/'] img",
+    "div[data-product-id] img",
+    ".product-card-wrapper img",
+    "img[data-src*='/products/']",
+    "img[src*='/products/']",
+  ];
 
-  function findProductHandle(wrapper) {
+  const findProductHandle = (el) => {
     const link =
-      wrapper.closest("a[href*='/products/']") ||
-      Array.from(wrapper.parentNode?.querySelectorAll("a[href*='/products/']") || []).find(
-        a => a.contains(wrapper) || wrapper.contains(a) || a === wrapper.nextElementSibling || a === wrapper.previousElementSibling
+      el.closest("a[href*='/products/']") ||
+      Array.from(el.parentNode?.querySelectorAll("a[href*='/products/']") || []).find(
+        (a) => a.contains(el) || el.contains(a) || a === el.nextElementSibling || a === el.previousElementSibling
       );
-    return link ? extractHandle(link.href) : null;
-  }
+    return link?.href?.split("/products/")[1]?.split("?")[0]?.replace("/", "") || null;
+  };
+
+  const createIcon = (handle) => {
+    const btn = document.createElement("button");
+    btn.className = ICON_CLASS;
+    btn.textContent = "▶️";
+    Object.assign(btn.style, {
+      position: "absolute",
+      top: "8px",
+      left: "8px",
+      background: "rgba(0,0,0,0.5)",
+      color: "#fff",
+      border: "none",
+      borderRadius: "50%",
+      width: "32px",
+      height: "32px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      zIndex: "10",
+    });
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      window.PlayKuPlayer.playByHandle(handle);
+    };
+    return btn;
+  };
 
   async function addPlayIcons() {
-    const SELECTORS = [
-      "a[href*='/products/'] img",
-      "div[data-product-id] img",
-      ".product-card-wrapper img",
-      "img[data-src*='/products/']",
-      "img[src*='/products/']",
-    ];
+  const images = new Set();
+  const seenHandles = new Set();
+  const handleToWrapper = new Map();
 
-    const images = new Set();
-    SELECTORS.forEach((selector) => {
-      document.querySelectorAll(selector).forEach((img) => {
-        if (img instanceof HTMLImageElement) images.add(img);
-      });
+  SELECTORS.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((img) => {
+      if (img instanceof HTMLImageElement) images.add(img);
     });
+  });
 
-    for (const img of images) {
-      const wrapper =
-        img.closest("a[href*='/products/'], .card, .product-card, .product-grid-item, .grid__item") || img.parentNode;
-      if (!wrapper || wrapper.querySelector("." + ICON_CLASS)) continue;
+  for (const img of images) {
+    const wrapper =
+      img.closest("a[href*='/products/'], .card, .product-card, .product-grid-item, .grid__item") || img.parentNode;
+    if (!wrapper || wrapper.querySelector("." + ICON_CLASS)) continue;
 
-      const handle = findProductHandle(wrapper);
-      if (!handle) continue;
+    const handle = findProductHandle(wrapper);
+    if (!handle || seenHandles.has(handle)) continue;
 
-      let audioUrl = null;
+    seenHandles.add(handle);
+    handleToWrapper.set(handle, wrapper);
+  }
+
+  // Parallel fetch all audio URLs
+  const results = await Promise.all(
+    Array.from(handleToWrapper.keys()).map(async (handle) => {
       try {
         const res = await fetch(`/apps/playku/${handle}`);
         const data = await res.json();
-        audioUrl = data.audioUrl;
+        return { handle, audioUrl: data.audioUrl };
       } catch {
-        continue;
+        return { handle, audioUrl: null };
       }
+    })
+  );
 
-      if (!audioUrl) continue;
+  results.forEach(({ handle, audioUrl }) => {
+    if (!audioUrl) return;
+    const wrapper = handleToWrapper.get(handle);
+    if (!wrapper) return;
 
-      const icon = document.createElement("button");
-      icon.className = ICON_CLASS;
-      icon.innerHTML = "▶️";
-      Object.assign(icon.style, {
-        position: "absolute",
-        top: "8px",
-        left: "8px",
-        background: "rgba(0,0,0,0.5)",
-        color: "#fff",
-        border: "none",
-        borderRadius: "50%",
-        width: "32px",
-        height: "32px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        zIndex: "10",
-      });
-
-      icon.onclick = (e) => {
-        e.stopPropagation();
-        window.PlayKuPlayer.playByHandle(handle);
-      };
-
-      if (window.getComputedStyle(wrapper).position === "static") {
-        wrapper.style.position = "relative";
-      }
-
-      wrapper.appendChild(icon);
+    if (getComputedStyle(wrapper).position === "static") {
+      wrapper.style.position = "relative";
     }
 
-    buildPlaylistFromDOM();
-  }
+    wrapper.appendChild(createIcon(handle));
+  });
 
-  function buildPlaylistFromDOM() {
+  buildPlaylistFromIcons();
+}
+
+
+  const buildPlaylistFromIcons = () => {
     const icons = document.querySelectorAll(`.${ICON_CLASS}`);
     const playlist = [];
 
@@ -95,37 +111,28 @@
       const wrapper =
         icon.closest("a[href*='/products/'], .card, .product-card, .product-grid-item, .grid__item") || icon.parentNode;
       const handle = findProductHandle(wrapper);
-      if (handle && !playlist.find((p) => p.handle === handle)) {
+      if (handle && !playlist.some((p) => p.handle === handle)) {
         playlist.push({ handle });
       }
     });
 
     window.PlayKuPlaylist.setPlaylist(playlist);
-  }
+  };
 
-  const observer = new MutationObserver(addPlayIcons);
-  observer.observe(document.body, { childList: true, subtree: true });
+  const loadWaveSurferScript = (cb) => {
+    if (window.WaveSurfer) return cb();
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/wavesurfer.js";
+    s.onload = cb;
+    document.head.appendChild(s);
+  };
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", addPlayIcons);
-  } else {
-    addPlayIcons();
-  }
-
-  function loadWaveSurferScript(callback) {
-    if (window.WaveSurfer) return callback();
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/wavesurfer.js";
-    script.onload = callback;
-    document.head.appendChild(script);
-  }
-
-  function ensureStickyPlayer() {
-    let player = document.getElementById("playku-sticky-player");
-    if (!player) {
-      player = document.createElement("div");
-      player.id = "playku-sticky-player";
-      Object.assign(player.style, {
+  const ensureStickyPlayer = () => {
+    let el = document.getElementById("playku-sticky-player");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "playku-sticky-player";
+      Object.assign(el.style, {
         position: "fixed",
         left: 0,
         right: 0,
@@ -140,26 +147,24 @@
         boxShadow: "0 -2px 8px rgba(0,0,0,0.2)",
         overflow: "hidden",
       });
-      player.innerHTML = `
+      el.innerHTML = `
         <button id="playku-player-prev">⏮️</button>
         <button id="playku-player-playpause">⏸️</button>
         <button id="playku-player-next">⏭️</button>
         <span id="playku-player-title" style="min-width: 100px; flex: 0 0 auto;"></span>
         <div id="playku-player-waveform" style="flex: 0 0 60%; min-width: 200px;"></div>
       `;
-      document.body.appendChild(player);
+      document.body.appendChild(el);
     }
-    return player;
-  }
+    return el;
+  };
 
-  window.playAudioInStickyPlayer = function (audioUrl, title, handle) {
+  const playAudioInStickyPlayer = (url, title, handle) => {
     loadWaveSurferScript(() => {
-      const player = ensureStickyPlayer();
-      document.getElementById("playku-player-title").textContent = title || "";
+      ensureStickyPlayer();
+      document.getElementById("playku-player-title").textContent = title || handle;
 
-      if (window._playkuWaveSurfer) {
-        window._playkuWaveSurfer.destroy();
-      }
+      if (window._playkuWaveSurfer) window._playkuWaveSurfer.destroy();
 
       window._playkuWaveSurfer = WaveSurfer.create({
         container: "#playku-player-waveform",
@@ -171,37 +176,29 @@
         cursorColor: "#1db954",
       });
 
-      window._playkuWaveSurfer.load(audioUrl);
+      window._playkuWaveSurfer.load(url);
       window._playkuWaveSurfer.once("ready", () => {
-        const savedHandle = localStorage.getItem("playku:currentHandle");
-        const savedTime = parseFloat(localStorage.getItem("playku:currentTime") || "0");
+        const savedHandle = localStorage.getItem(CURRENT_HANDLE_KEY);
+        const savedTime = parseFloat(localStorage.getItem(CURRENT_TIME_KEY) || "0");
+
         if (savedHandle === handle && savedTime > 0) {
           window._playkuWaveSurfer.setTime(savedTime);
-          // Play after seek, but also set a fallback in case "seek" doesn't fire
-          let played = false;
-          const playNow = () => {
-            if (!played) {
-              played = true;
-              window._playkuWaveSurfer.play();
-            }
-          };
-          window._playkuWaveSurfer.once("seek", playNow);
-          setTimeout(playNow, 300); // fallback if "seek" doesn't fire
+          setTimeout(() => window._playkuWaveSurfer.play(), 300);
         } else {
-          localStorage.removeItem("playku:currentTime");
+          localStorage.removeItem(CURRENT_TIME_KEY);
           window._playkuWaveSurfer.play();
         }
       });
 
       const pp = document.getElementById("playku-player-playpause");
       pp.onclick = () => window._playkuWaveSurfer.playPause();
-      window._playkuWaveSurfer.on("play", () => { pp.textContent = "⏸️"; });
-      window._playkuWaveSurfer.on("pause", () => { pp.textContent = "▶️"; });
-      window._playkuWaveSurfer.on("audioprocess", () => {
-        localStorage.setItem("playku:currentTime", window._playkuWaveSurfer.getCurrentTime());
-      });
+      window._playkuWaveSurfer.on("play", () => (pp.textContent = "⏸️"));
+      window._playkuWaveSurfer.on("pause", () => (pp.textContent = "▶️"));
+      window._playkuWaveSurfer.on("audioprocess", () =>
+        localStorage.setItem(CURRENT_TIME_KEY, window._playkuWaveSurfer.getCurrentTime())
+      );
       window._playkuWaveSurfer.on("finish", () => {
-        localStorage.removeItem("playku:currentTime");
+        localStorage.removeItem(CURRENT_TIME_KEY);
         window.PlayKuPlaylist.playNext();
       });
 
@@ -213,13 +210,13 @@
   window.PlayKuPlaylist = {
     items: [],
     currentIndex: -1,
-    setPlaylist(products) {
-      this.items = products;
+    setPlaylist(arr) {
+      this.items = arr;
     },
-    playByIndex(idx) {
-      if (idx < 0 || idx >= this.items.length) return;
-      this.currentIndex = idx;
-      const { handle } = this.items[idx];
+    playByIndex(i) {
+      if (i < 0 || i >= this.items.length) return;
+      this.currentIndex = i;
+      const { handle } = this.items[i];
       window.PlayKuPlayer.playByHandle(handle);
     },
     playNext() {
@@ -228,8 +225,8 @@
     playPrev() {
       this.playByIndex(this.currentIndex - 1);
     },
-    findIndexByHandle(handle) {
-      return this.items.findIndex((item) => item.handle === handle);
+    findIndexByHandle(h) {
+      return this.items.findIndex((x) => x.handle === h);
     },
   };
 
@@ -242,36 +239,45 @@
         const res = await fetch(`/apps/playku/${handle}`);
         const data = await res.json();
         if (data.audioUrl) {
-          localStorage.setItem("playku:currentHandle", handle);
+          localStorage.setItem(CURRENT_HANDLE_KEY, handle);
           playAudioInStickyPlayer(data.audioUrl, data.title || handle, handle);
 
-          document.querySelectorAll(".playku-play-icon").forEach((icon) => {
-            const wrapper = icon.closest("a[href*='/products/'], .card, .product-card, .product-grid-item, .grid__item") || icon.parentNode;
+          document.querySelectorAll("." + ICON_CLASS).forEach((icon) => {
+            const wrapper =
+              icon.closest("a[href*='/products/'], .card, .product-card, .product-grid-item, .grid__item") ||
+              icon.parentNode;
             const h = findProductHandle(wrapper);
-            icon.innerHTML = h === handle ? "⏸️" : "▶️";
+            icon.textContent = h === handle ? "⏸️" : "▶️";
           });
         }
       } catch (e) {
-        console.warn("PlayKu error", e);
+        console.warn("PlayKu: failed to play by handle", e);
       }
-    }
+    },
   };
 
-  // Detect route change and re-run
-  async function handleRouteChange() {
-    setTimeout(async () => {
-      // Always ensure sticky player exists
-      ensureStickyPlayer();
+  const debounce = (fn, wait) => {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn(...args), wait);
+    };
+  };
 
-      // Remove old play icons and rebuild playlist
-      document.querySelectorAll(".playku-play-icon").forEach((el) => el.remove());
-      await addPlayIcons(); // This will also rebuild the playlist
+ const handleRouteChange = debounce(async () => {
+  ensureStickyPlayer();
+  document.querySelectorAll("." + ICON_CLASS).forEach((el) => el.remove());
+  await addPlayIcons();
 
-      // Resume playback if there was a track playing
-      const handle = localStorage.getItem("playku:currentHandle");
-      if (handle) window.PlayKuPlayer.playByHandle(handle);
-    }, 300);
+  const handle = localStorage.getItem(CURRENT_HANDLE_KEY);
+  if (handle) {
+    // Force play again to ensure sticky player is shown and synced
+    window._playkuWaveSurfer?.destroy(); // Remove existing instance
+    window._playkuWaveSurfer = null;
+    window.PlayKuPlayer.playByHandle(handle);
   }
+}, 250);
+
 
   window.addEventListener("popstate", handleRouteChange);
   window.addEventListener("pushState", handleRouteChange);
@@ -279,13 +285,19 @@
 
   (function (history) {
     const pushState = history.pushState;
-    history.pushState = function (state) {
-      if (typeof history.onpushstate === "function") {
-        history.onpushstate({ state });
-      }
+    history.pushState = function () {
       const result = pushState.apply(history, arguments);
       window.dispatchEvent(new Event("pushState"));
       return result;
     };
   })(window.history);
+
+  const observer = new MutationObserver(() => addPlayIcons());
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", addPlayIcons);
+  } else {
+    addPlayIcons();
+  }
 })();
