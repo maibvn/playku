@@ -63,12 +63,32 @@ export async function updateProductAudio(
 }
 
 // getAudioUrlByHandle.js
-export async function getAudioUrlByHandle(handle, userId) {
-  const dbAudio = await prisma.productAudio.findUnique({
-    where: { handle_userId: { handle, userId } },
-    select: { audioUrl: true, title: true },
+// export async function getAudioUrlByHandle(handle, userId) {
+//   const dbAudio = await prisma.productAudio.findUnique({
+//     where: { handle_userId: { handle, userId } },
+//     select: { audioUrl: true, title: true },
+//   });
+//   return dbAudio
+//     ? { audioUrl: dbAudio.audioUrl, title: dbAudio.title }
+//     : { audioUrl: null, title: null };
+// }
+
+/**
+ * Returns all audio data for a user, keyed by product handle.
+ * { [handle]: { audioUrl, title } }
+ */
+export async function getAllAudioByUser(userId) {
+  const dbAudios = await prisma.productAudio.findMany({
+    where: { userId },
+    select: { handle: true, audioUrl: true, title: true },
   });
-  return dbAudio
-    ? { audioUrl: dbAudio.audioUrl, title: dbAudio.title }
-    : { audioUrl: null, title: null };
+
+  // Build object: { handle: { audioUrl, title } }
+  return Object.fromEntries(
+    dbAudios.map((a) => [a.handle, { audioUrl: a.audioUrl, title: a.title }]),
+  );
+}
+
+export async function getThemeConfig() {
+  return prisma.themeConfig.findMany();
 }

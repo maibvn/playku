@@ -32,9 +32,9 @@ model Session {
 }
 
 model User {
-  id        String   @id
-  shop      String   @unique
-  audios    ProductAudio[]
+  id            String         @id
+  shop          String         @unique
+  audios        ProductAudio[]
 }
 
 model ProductAudio {
@@ -47,4 +47,10 @@ model ProductAudio {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([handle, userId])
+}
+
+model ThemeConfig {
+  id                    String   @id @default(uuid())
+  theme                 String   @unique
+  productImageSelectors String
 }

@@ -3,7 +3,7 @@
 client_id = "b4b4a851dda6d20e1babfeea1f9e2eb3"
 name = "PlayKu"
 handle = "playku"
-application_url = "https://di-livecam-clearance-boss.trycloudflare.com"
+application_url = "https://linear-spirituality-producers-photograph.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,13 +27,13 @@ scopes = "write_products, read_products, read_metaobject_definitions, write_meta
 
 [auth]
 redirect_urls = [
-  "https://di-livecam-clearance-boss.trycloudflare.com/auth/callback",
-  "https://di-livecam-clearance-boss.trycloudflare.com/auth/shopify/callback",
-  "https://di-livecam-clearance-boss.trycloudflare.com/api/auth/callback"
+  "https://linear-spirituality-producers-photograph.trycloudflare.com/auth/callback",
+  "https://linear-spirituality-producers-photograph.trycloudflare.com/auth/shopify/callback",
+  "https://linear-spirituality-producers-photograph.trycloudflare.com/api/auth/callback"
 ]
 
 [app_proxy]
-url = "https://di-livecam-clearance-boss.trycloudflare.com/app-proxy/playku"
+url = "https://linear-spirituality-producers-photograph.trycloudflare.com/app-proxy/playku"
 subpath = "playku"
 prefix = "apps"
 

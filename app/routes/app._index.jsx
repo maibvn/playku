@@ -50,6 +50,7 @@ export const action = async ({ request }) => {
 
 export default function ProductsDashboard() {
   const { products } = useLoaderData();
+  
   const fetcher = useFetcher();
 
   // Local state for audio URLs, keyed by product ID
