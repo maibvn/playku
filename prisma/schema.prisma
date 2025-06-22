@@ -61,6 +61,7 @@ model PlaykuSettings {
 
   playerHeight            Int
   playerBgColor           String
+  iconPosition            String  
   iconColor               String
   waveColor               String
   progressColor           String

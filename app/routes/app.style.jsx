@@ -17,6 +17,7 @@ import { PlayerPreview } from "./components/PlayerPreview";
 const DEFAULT_SETTINGS = {
   playerHeight: 72,
   playerBgColor: "#181818",
+  iconPosition: "center",
   iconColor: "#fff",
   waveColor: "#888",
   progressColor: "#fff",
@@ -44,14 +45,6 @@ export default function PlayerStyleSettingsPage() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [elements, setElements] = useState(DEFAULT_ELEMENTS);
 
-  // --- Drag & Drop ---
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-    const reordered = Array.from(elements);
-    const [removed] = reordered.splice(result.source.index, 1);
-    reordered.splice(result.destination.index, 0, removed);
-    setElements(reordered);
-  };
 
   // --- Toggle element visibility ---
   const handleToggle = (index) => (checked) => {
@@ -92,7 +85,7 @@ export default function PlayerStyleSettingsPage() {
 
   return (
     <Page>
-      <TitleBar title="Audio Player Drag & Drop Designer" />
+      <TitleBar title="Audio Player Designer" />
       <Layout>
         <Layout.Section>
           <Card>
@@ -101,7 +94,7 @@ export default function PlayerStyleSettingsPage() {
                 Player Settings
               </Text>
               <FormLayout>
-                <FormLayout.Group>
+                <FormLayout.Group condensed>
                   <TextField
                     label="Player Height (px)"
                     type="number"
@@ -120,8 +113,7 @@ export default function PlayerStyleSettingsPage() {
                     value={String(settings.waveformBarWidth)}
                     onChange={handleSettingChange("waveformBarWidth")}
                   />
-                </FormLayout.Group>
-                <FormLayout.Group>
+               
                   <TextField
                     label="Player Background Color"
                     value={settings.playerBgColor}
@@ -134,6 +126,8 @@ export default function PlayerStyleSettingsPage() {
                     onChange={handleSettingChange("iconColor")}
                     autoComplete="off"
                   />
+                </FormLayout.Group>
+                <FormLayout.Group condensed>
                   <TextField
                     label="Waveform Color"
                     value={settings.waveColor}
@@ -146,15 +140,13 @@ export default function PlayerStyleSettingsPage() {
                     onChange={handleSettingChange("progressColor")}
                     autoComplete="off"
                   />
-                </FormLayout.Group>
-                <FormLayout.Group>
                   <TextField
-                    label="Play/Pause Icons (comma separated)"
+                    label="Play/Pause Icons "
                     value={settings.playPauseIcons}
                     onChange={handleSettingChange("playPauseIcons")}
                   />
                   <TextField
-                    label="Next/Prev Icons (comma separated)"
+                    label="Next/Prev Icons "
                     value={settings.nextPrevIcons}
                     onChange={handleSettingChange("nextPrevIcons")}
                   />
@@ -165,6 +157,11 @@ export default function PlayerStyleSettingsPage() {
                   />
                 </FormLayout.Group>
                 <FormLayout.Group condensed>
+                   <TextField
+                    label="Icon position"
+                    value={settings.iconPosition}
+                    onChange={handleSettingChange("iconPosition")}
+                  />
                   <Checkbox
                     label="Auto Loop"
                     checked={settings.autoLoop}
@@ -179,19 +176,20 @@ export default function PlayerStyleSettingsPage() {
                     label="Show Title"
                     checked={settings.showTitle}
                     onChange={handleCheckbox("showTitle")}
-                  />
+                    />
                   <Checkbox
                     label="Show Image"
                     checked={settings.showImage}
                     onChange={handleCheckbox("showImage")}
-                  />
-                </FormLayout.Group>
+                    />
+                    </FormLayout.Group>
+                
               </FormLayout>
               <Button primary onClick={handleSubmit}>
                 Save Layout & Settings
               </Button>
               <Text variant="headingMd" as="h2" style={{ marginTop: 32 }}>
-                Live Preview
+                Preview
               </Text>
               <PlayerPreview settings={settings} elements={elements} />
             </BlockStack>

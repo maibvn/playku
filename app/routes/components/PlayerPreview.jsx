@@ -1,19 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 
-const AUDIO_URL =
-  "https://dl.dropboxusercontent.com/s/cvl7pvjvlzt0i7bhko3iu/DMPAuth-Cajon-Cajon-9.mp3?rlkey=vszq7fflb7tomuqf3xz7ngt00&st=euobgg5j";
+// Demo products array
+const DEMO_PRODUCTS = [
+  {
+    audioUrl:
+      "https://dl.dropboxusercontent.com/s/cvl7pvjvlzt0i7bhko3iu/DMPAuth-Cajon-Cajon-9.mp3?rlkey=vszq7fflb7tomuqf3xz7ngt00&st=euobgg5j",
+    title: "Dirty Kick - Sample Pack",
+    image:
+      "https://maibuivn.myshopify.com/cdn/shop/files/dirtykick_new.webp?v=1739400793",
+  },
+  {
+    audioUrl:
+      "https://cdn.shopify.com/s/files/1/0259/9026/6977/files/Retro_Vibes_Bundle.mp3?v=1721995574",
+    title: "Rise - Beta - Sample Pack",
+    image:
+      "https://maibuivn.myshopify.com/cdn/shop/files/Risebeta_new.webp?v=1739400793&width=533",
+  },
+];
 
-export function PlayerPreview({ settings, elements }) {
+function StickyWaveform({ audioUrl, settings, isPlaying, onEnded }) {
   const waveformRef = useRef(null);
   const wavesurfer = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
-  // Parse icons
-  const [playIcon, pauseIcon] = settings.playPauseIcons.split(",");
-  const [prevIcon, nextIcon] = settings.nextPrevIcons.split(",");
-  const visibleElements = elements.filter((el) => el.visible);
-
-  // Setup WaveSurfer (always render waveform, never duplicate)
   useEffect(() => {
     let WaveSurfer;
     let ws;
@@ -34,16 +42,14 @@ export function PlayerPreview({ settings, elements }) {
         cursorColor: settings.iconColor,
         interact: true,
       });
-      ws.load(AUDIO_URL);
+      ws.load(audioUrl);
 
-      ws.on("play", () => setIsPlaying(true));
-      ws.on("pause", () => setIsPlaying(false));
-      ws.on("finish", () => setIsPlaying(false));
+      ws.on("finish", onEnded);
 
       wavesurfer.current = ws;
     }
 
-    if (waveformRef.current) {
+    if (waveformRef.current && isPlaying) {
       setup();
     }
 
@@ -53,71 +59,164 @@ export function PlayerPreview({ settings, elements }) {
         wavesurfer.current = null;
       }
     };
-    // Only rerun when these settings change
   }, [
+    audioUrl,
     settings.waveColor,
     settings.progressColor,
     settings.waveformHeight,
     settings.waveformBarWidth,
     settings.iconColor,
+    onEnded,
+    isPlaying,
   ]);
 
-  // Controls
-  const handlePlayPause = () => {
+  // Sync play/pause with parent
+  useEffect(() => {
     if (wavesurfer.current) {
-      wavesurfer.current.playPause();
+      if (isPlaying) {
+        wavesurfer.current.play();
+      } else {
+        wavesurfer.current.pause();
+      }
+    }
+  }, [isPlaying]);
+
+  // Only render the waveform container when playing
+  if (!isPlaying) return null;
+
+  return (
+    <div
+      ref={waveformRef}
+      style={{
+        flex: 1,
+        height: settings.waveformHeight,
+        minWidth: 80,
+        maxWidth: 300,
+        margin: "0 16px",
+      }}
+    />
+  );
+}
+
+export function PlayerPreview({ settings, elements }) {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef(null);
+
+  const [prevIcon, nextIcon] = settings.nextPrevIcons.split(",");
+  const [playIcon, pauseIcon] = settings.playPauseIcons.split(",");
+  const visibleElements = elements.filter((el) => el.visible);
+
+  // Handle auto-play next
+  const handleEnded = () => {
+    setIsPlaying(false);
+    setCurrentIdx((idx) => (idx + 1) % DEMO_PRODUCTS.length);
+  };
+
+  // Play selected product
+  const handlePlayProduct = (idx) => {
+    setCurrentIdx(idx);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
   };
 
+  // Play/pause button handler
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  // Sync play/pause state with audio element
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+  }, [isPlaying, currentIdx]);
+
+  const currentProduct = DEMO_PRODUCTS[currentIdx];
+
   return (
-    <div style={{ marginTop: 32 }}>
-      {/* Product image with play icon */}
-      <div style={{ position: "relative", width: 120, margin: "0 auto" }}>
-        <img
-          src="https://maibuivn.myshopify.com/cdn/shop/files/dirtykick_new.webp?v=1739400793"
-          alt="Product"
-          style={{
-            width: 120,
-            height: 120,
-            objectFit: "cover",
-            borderRadius: 8,
-            boxShadow: "0 2px 8px #0006",
-          }}
-        />
-        {settings.showPlayIconOnImage && (
-          <button
-            style={{
-              position: "absolute",
-              top: 8,
-              left: 8,
-              background: "rgba(0,0,0,0.5)",
-              color: settings.iconColor,
-              border: "none",
-              borderRadius: "50%",
-              width: 32,
-              height: 32,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              zIndex: 10,
-              fontSize: 20,
-            }}
-            onClick={handlePlayPause}
-          >
-            {isPlaying ? (pauseIcon || "⏸️") : (playIcon || "▶️")}
-          </button>
-        )}
+    <div>
+      {/* Product images grid */}
+      <div
+        style={{
+          display: "flex",
+          gap: 48,
+          marginBottom: 32,
+        }}
+      >
+        {DEMO_PRODUCTS.map((product, idx) => (
+          <div key={product.audioUrl} style={{ textAlign: "center" }}>
+            <div style={{ position: "relative", width: 120, margin: "0 auto" }}>
+              <img
+                src={product.image}
+                alt={product.title}
+                style={{
+                  width: 120,
+                  height: 120,
+                  objectFit: "cover",
+                  borderRadius: 8,
+                  boxShadow: "0 2px 8px #0006",
+                  opacity: idx === currentIdx ? 1 : 0.7,
+                  filter: idx === currentIdx ? "none" : "grayscale(1)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                }}
+                onClick={() => handlePlayProduct(idx)}
+              />
+              <button
+                style={{
+                  position: "absolute",
+                  top: 8,
+                  left: 8,
+                  background: "rgba(0,0,0,0.5)",
+                  color: settings.iconColor,
+                  border: "none",
+                  borderRadius: "50%",
+                  width: 32,
+                  height: 32,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  zIndex: 10,
+                  fontSize: 20,
+                }}
+                onClick={() => {
+                  handlePlayProduct(idx);
+                  setIsPlaying(true);
+                }}
+              >
+                {idx === currentIdx && isPlaying
+                  ? (pauseIcon || "⏸️")
+                  : (playIcon || "▶️")}
+              </button>
+            </div>
+            <div style={{ marginTop: 8, fontWeight: "bold" }}>
+              {product.title}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Sticky player */}
+      {/* Sticky player (one only) */}
       <div
         style={{
           margin: "32px 0 0 0",
           background: settings.playerBgColor,
           color: settings.iconColor,
-          borderRadius: 12,
-          boxShadow: "0 -2px 12px #0008",
           minHeight: settings.playerHeight,
           width: "100%",
           display: "flex",
@@ -126,14 +225,14 @@ export function PlayerPreview({ settings, elements }) {
           gap: 16,
         }}
       >
-        {visibleElements.map((el) => {
+        {visibleElements.map((el, idx) => {
           switch (el.key) {
             case "image":
               return settings.showImage ? (
                 <img
                   key="preview-img"
-                  src="https://maibuivn.myshopify.com/cdn/shop/files/dirtykick_new.webp?v=1739400793"
-                  alt="Product"
+                  src={currentProduct.image}
+                  alt={currentProduct.title}
                   style={{
                     width: 48,
                     height: 48,
@@ -157,7 +256,7 @@ export function PlayerPreview({ settings, elements }) {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  Dirty Kick - Sample Pack
+                  {currentProduct.title}
                 </span>
               ) : null;
             case "controls":
@@ -171,12 +270,21 @@ export function PlayerPreview({ settings, elements }) {
                       fontSize: 20,
                       cursor: "pointer",
                     }}
-                    onClick={() => {
-                      if (wavesurfer.current) wavesurfer.current.seekTo(0);
-                    }}
+                    onClick={() =>
+                      setCurrentIdx(
+                        (currentIdx - 1 + DEMO_PRODUCTS.length) %
+                          DEMO_PRODUCTS.length
+                      )
+                    }
                   >
                     {prevIcon || "⏮️"}
                   </button>
+                  <audio
+                    ref={audioRef}
+                    src={currentProduct.audioUrl}
+                    onEnded={handleEnded}
+                    style={{ display: "none" }}
+                  />
                   <button
                     style={{
                       background: "none",
@@ -187,7 +295,9 @@ export function PlayerPreview({ settings, elements }) {
                     }}
                     onClick={handlePlayPause}
                   >
-                    {isPlaying ? (pauseIcon || "⏸️") : (playIcon || "▶️")}
+                    {isPlaying
+                      ? (pauseIcon || "⏸️")
+                      : (playIcon || "▶️")}
                   </button>
                   <button
                     style={{
@@ -197,27 +307,23 @@ export function PlayerPreview({ settings, elements }) {
                       fontSize: 20,
                       cursor: "pointer",
                     }}
-                    onClick={() => {
-                      if (wavesurfer.current) wavesurfer.current.seekTo(1);
-                    }}
+                    onClick={() =>
+                      setCurrentIdx((currentIdx + 1) % DEMO_PRODUCTS.length)
+                    }
                   >
                     {nextIcon || "⏭️"}
                   </button>
                 </span>
               );
             case "waveform":
-              // Always render waveform
+              // Render waveform inside sticky player, only when playing
               return (
-                <div
-                  key="preview-waveform"
-                  ref={waveformRef}
-                  style={{
-                    flex: 1,
-                    height: settings.waveformHeight,
-                    minWidth: 80,
-                    maxWidth: 300,
-                    margin: "0 16px",
-                  }}
+                <StickyWaveform
+                  key="sticky-waveform"
+                  audioUrl={currentProduct.audioUrl}
+                  settings={settings}
+                  isPlaying={isPlaying}
+                  onEnded={handleEnded}
                 />
               );
             case "close":
