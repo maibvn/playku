@@ -73,7 +73,6 @@ model PlaykuSettings {
 
   autoLoop                Boolean  @default(true)
   showPlayIconOnImage     Boolean  @default(true)
-  showWaveform            Boolean  @default(true)
   showTitle               Boolean  @default(true)
   showImage               Boolean  @default(true)
 }

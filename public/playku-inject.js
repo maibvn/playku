@@ -264,6 +264,9 @@
       });
 
       const { themeConfig, audioData } = await res.json();
+      
+      console.log("[PlayKu] Theme config and audio data fetched", themeConfig, audioData);
+
       audioDataRef = audioData || {};
       audioHandles = Object.keys(audioDataRef);
 
