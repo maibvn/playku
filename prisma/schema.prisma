@@ -54,3 +54,26 @@ model ThemeConfig {
   theme                 String   @unique
   productImageSelectors String
 }
+
+model PlaykuSettings {
+  id                      String   @id @default(cuid())
+  shop                    String
+
+  playerHeight            Int
+  playerBgColor           String
+  iconColor               String
+  waveColor               String
+  progressColor           String
+  waveformHeight          Int
+  waveformBarWidth        Int
+
+  playPauseIcons          String
+  nextPrevIcons           String
+  closeIcon               String
+
+  autoLoop                Boolean  @default(true)
+  showPlayIconOnImage     Boolean  @default(true)
+  showWaveform            Boolean  @default(true)
+  showTitle               Boolean  @default(true)
+  showImage               Boolean  @default(true)
+}

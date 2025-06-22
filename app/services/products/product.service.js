@@ -62,17 +62,6 @@ export async function updateProductAudio(
   });
 }
 
-// getAudioUrlByHandle.js
-// export async function getAudioUrlByHandle(handle, userId) {
-//   const dbAudio = await prisma.productAudio.findUnique({
-//     where: { handle_userId: { handle, userId } },
-//     select: { audioUrl: true, title: true },
-//   });
-//   return dbAudio
-//     ? { audioUrl: dbAudio.audioUrl, title: dbAudio.title }
-//     : { audioUrl: null, title: null };
-// }
-
 /**
  * Returns all audio data for a user, keyed by product handle.
  * { [handle]: { audioUrl, title } }

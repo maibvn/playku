@@ -67,7 +67,7 @@ export default function ProductsDashboard() {
       <BlockStack gap="400">
         {products.map((product) => (
           <Card key={product.id} sectioned>
-            <InlineStack gap="400" align="center">
+            <InlineStack gap="400" >
               <img src={product.image} alt={product.title} style={{ width: 80, height: 80, objectFit: "cover" }} />
               <Text variant="bodyMd">{product.title}</Text>
               <fetcher.Form method="post">

@@ -27,7 +27,7 @@
   const createIcon = (handle, title, audioUrl) => {
     const btn = document.createElement("button");
     btn.className = ICON_CLASS;
-    btn.textContent = "\u25B6\uFE0F";
+    btn.textContent = "▶️";
     Object.assign(btn.style, {
       position: "absolute",
       top: "8px",
@@ -59,9 +59,9 @@
   function updateIconStates() {
     Object.entries(playIcons).forEach(([handle, btn]) => {
       if (handle === currentHandle && waveSurferInstance && waveSurferInstance.isPlaying()) {
-        btn.textContent = "\u23F8\uFE0F";
+        btn.textContent = "⏸️";
       } else {
-        btn.textContent = "\u25B6\uFE0F";
+        btn.textContent = "▶️";
       }
     });
   }
@@ -92,7 +92,13 @@
       if (img) imgSrc = img.src;
     }
 
-    createStickyPlayer({ imgSrc, title: info.title, audioUrl: info.audioUrl, autoplay });
+    createStickyPlayer({
+      imgSrc,
+      title: info.title,
+      audioUrl: info.audioUrl,
+      autoplay,
+      blob: restoreState?.audioUrl === info.audioUrl ? restoreState.blob : null
+    });
   }
 
   function getNextHandle() {
@@ -107,23 +113,33 @@
     return idx <= 0 ? audioHandles[audioHandles.length - 1] : audioHandles[idx - 1];
   }
 
-  function createStickyPlayer({ imgSrc, title, audioUrl, autoplay }) {
+  function createStickyPlayer({ imgSrc, title, audioUrl, autoplay, blob }) {
     document.getElementById('playku-sticky-player')?.remove();
 
     const player = document.createElement('div');
     player.id = 'playku-sticky-player';
-    player.style = `position:fixed;left:0;right:0;bottom:0;z-index:9999;background:#181818;color:#fff;display:flex;align-items:center;gap:16px;padding:12px 24px;box-shadow:0 -2px 12px #0008;font-family:sans-serif;min-height:72px;`;
+    player.style = `
+      position:fixed;left:0;right:0;bottom:0;z-index:9999;
+      background:#181818;color:#fff;display:flex;align-items:center;
+      gap:16px;padding:12px 24px;box-shadow:0 -2px 12px #0008;
+      font-family:sans-serif;min-height:72px;width:100%;
+    `;
 
+    // 1. Image
     const img = document.createElement('img');
     img.src = imgSrc;
     img.alt = title;
     img.style = 'width:56px;height:56px;object-fit:cover;border-radius:8px;box-shadow:0 2px 8px #0006;';
     player.appendChild(img);
 
+    // 2. Title + Controls cell
+    const infoControls = document.createElement('div');
+    infoControls.style = 'display:flex;flex-direction:column;justify-content:center;min-width:180px;max-width:260px;';
+
     const info = document.createElement('div');
-    info.style = 'flex:1 1 0;min-width:0;';
-    info.innerHTML = `<div style="font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${title}</div>`;
-    player.appendChild(info);
+    info.style = 'font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px;';
+    info.textContent = title;
+    infoControls.appendChild(info);
 
     const controls = document.createElement('div');
     controls.style = 'display:flex;align-items:center;gap:8px;';
@@ -132,13 +148,17 @@
       <button id="playku-play" style="font-size:24px;background:none;border:none;color:#fff;cursor:pointer;">▶️</button>
       <button id="playku-next" style="font-size:20px;background:none;border:none;color:#fff;cursor:pointer;">⏭️</button>
     `;
-    player.appendChild(controls);
+    infoControls.appendChild(controls);
 
+    player.appendChild(infoControls);
+
+    // 3. Waveform (expands)
     const waveform = document.createElement('div');
     waveform.id = 'playku-waveform';
-    waveform.style = 'width:240px;height:48px;background:#222;border-radius:4px;';
+    waveform.style = 'flex:1 1 0;width:100%;height:48px;background:#222;border-radius:4px;margin:0 16px;';
     player.appendChild(waveform);
 
+    // 4. Close button
     const closeBtn = document.createElement('button');
     closeBtn.textContent = '✖';
     closeBtn.title = 'Close';
@@ -167,12 +187,14 @@
         height: 48,
         barWidth: 2,
         responsive: true,
-        draw: false,
+        draw: false
       });
 
-      const blob = await preloadAudioBlob(audioUrl);
-      if (blob) waveSurferInstance.loadBlob(blob);
-      else waveSurferInstance.load(audioUrl);
+      if (blob) {
+        waveSurferInstance.loadBlob(blob);
+      } else {
+        waveSurferInstance.load(audioUrl);
+      }
 
       const playBtn = document.getElementById('playku-play');
       playBtn.onclick = () => waveSurferInstance.playPause();
@@ -269,13 +291,16 @@
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.audioUrl && audioHandles.includes(parsed.currentHandle)) {
-          restoreState = parsed;
-          currentHandle = parsed.currentHandle;
-          createStickyPlayer({
-            imgSrc: parsed.imgSrc,
-            title: parsed.title,
-            audioUrl: parsed.audioUrl,
-            autoplay: false
+          preloadAudioBlob(parsed.audioUrl).then(blob => {
+            restoreState = { ...parsed, blob };
+            currentHandle = parsed.currentHandle;
+            createStickyPlayer({
+              imgSrc: parsed.imgSrc,
+              title: parsed.title,
+              audioUrl: parsed.audioUrl,
+              autoplay: false,
+              blob
+            });
           });
         }
       }
