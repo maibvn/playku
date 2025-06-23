@@ -12,7 +12,7 @@ import {
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState } from "react";
 import  PlayerPreview  from "./components/PlayerPreview";
-
+import IconSelect from "./components/IconSelect";
 
 // All schema keys with defaults
 const DEFAULT_SETTINGS = {
@@ -141,20 +141,44 @@ export default function PlayerStyleSettingsPage() {
                     onChange={handleSettingChange("progressColor")}
                     autoComplete="off"
                   />
-                  <TextField
-                    label="Play/Pause Icons "
-                    value={settings.playPauseIcons}
-                    onChange={handleSettingChange("playPauseIcons")}
+                  <IconSelect
+                    label="Play/Pause Icons"
+                    type="playpause"
+                    value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+                    onChange={(val) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        playPauseIcons: val
+                          .split(' ')
+                          .map((k) => `bi-${k}`)
+                          .join(', ')
+                      }))
+                    }
                   />
-                  <TextField
-                    label="Next/Prev Icons "
-                    value={settings.nextPrevIcons}
-                    onChange={handleSettingChange("nextPrevIcons")}
+                  <IconSelect
+                    label="Next/Prev Icons"
+                    type="prevnext"
+                    value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+                    onChange={(val) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        nextPrevIcons: val
+                          .split(' ')
+                          .map((k) => `bi-${k}`)
+                          .join(', ')
+                      }))
+                    }
                   />
-                  <TextField
+                  <IconSelect
                     label="Close Icon"
-                    value={settings.closeIcon}
-                    onChange={handleSettingChange("closeIcon")}
+                    type="close"
+                    value={settings.closeIcon.replace(/bi-/g, '')}
+                    onChange={(val) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        closeIcon: `bi-${val}`
+                      }))
+                    }
                   />
                 </FormLayout.Group>
                 <FormLayout.Group condensed>

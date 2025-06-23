@@ -1,43 +1,75 @@
 // ...existing imports...
 import {
-  PlayFill,
-  PauseFill,
-  PlayCircleFill,
-  PauseCircleFill,
-  PlayCircle,
-  PauseCircle,
   Play,
-  Pause,
+  PlayFill,
+  PlayCircle,
+  PlayCircleFill,
   PlayBtn,
+  Pause,
+  PauseFill,
+  PauseCircle,
+  PauseCircleFill,
   PauseBtn,
   SkipForward,
   SkipBackward,
-  X,
+  FastForward,
+  Rewind,
   CaretLeft,
   CaretRight,
+  CaretDown,
+  ArrowRightCircle,
+  ArrowLeftCircle,
+  X,
+  XCircle,
+  XCircleFill,
+  XOctagon,
+  XOctagonFill,
 } from "react-bootstrap-icons";
 
-// IconParser component with its own iconMap
-function IconParser({ iconKey, size = 20, color, ...extraProps }) {
+// IconParser component
+function IconParser({ iconKey, size = 20, color = "black", ...extraProps }) {
   const iconMap = {
+    // Play icons
     "bi-play": Play,
-    "bi-pause": Pause,
     "bi-play-fill": PlayFill,
-    "bi-pause-fill": PauseFill,
     "bi-play-circle": PlayCircle,
-    "bi-pause-circle": PauseCircle,
     "bi-play-circle-fill": PlayCircleFill,
-    "bi-pause-circle-fill": PauseCircleFill,
     "bi-play-btn": PlayBtn,
+
+    // Pause icons
+    "bi-pause": Pause,
+    "bi-pause-fill": PauseFill,
+    "bi-pause-circle": PauseCircle,
+    "bi-pause-circle-fill": PauseCircleFill,
     "bi-pause-btn": PauseBtn,
+
+    // Next / Forward
     "bi-skip-forward": SkipForward,
-    "bi-skip-backward": SkipBackward,
-    "bi-caret-left": CaretLeft,
+    "bi-fast-forward": FastForward,
     "bi-caret-right": CaretRight,
+    "bi-arrow-right-circle": ArrowRightCircle,
+
+    // Previous / Backward
+    "bi-skip-backward": SkipBackward,
+    "bi-rewind": Rewind,
+    "bi-caret-left": CaretLeft,
+    "bi-arrow-left-circle": ArrowLeftCircle,
+
+    // Close icons
     "bi-x": X,
-    // Add more as needed
+    "bi-x-circle": XCircle,
+    "bi-x-circle-fill": XCircleFill,
+    "bi-x-octagon": XOctagon,
+    "bi-x-octagon-fill": XOctagonFill,
+
+    // Dropdown caret
+    "bi-caret-down": CaretDown,
   };
+
   const IconComponent = iconMap[iconKey?.trim()];
   if (!IconComponent) return null;
+
   return <IconComponent size={size} color={color} {...extraProps} />;
 }
+
+export default IconParser;

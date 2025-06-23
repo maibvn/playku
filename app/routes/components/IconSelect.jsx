@@ -1,20 +1,15 @@
-import { Button, Popover, ActionList, Label, Select } from "@shopify/polaris";
-import { useState, useCallback, useEffect } from "react";
+import { Button, Popover, ActionList, Label } from "@shopify/polaris";
+import { useState, useCallback } from "react";
 import {
-  PlayFill,
-  PauseFill,
-  PlayCircle,
-  PauseCircle,
-  Play,
-  Pause,
-  PlayCircleFill,
-  PauseCircleFill,
-  PlayBtn,
-  PauseBtn,
-  
+  Play, PlayFill, PlayCircle, PlayCircleFill, PlayBtn,
+  Pause, PauseFill, PauseCircle, PauseCircleFill, PauseBtn,
+  SkipForward, SkipBackward, FastForward, Rewind,
+  CaretLeft, CaretRight, X, XCircle, XCircleFill, XOctagon, XOctagonFill, CaretDown,
+  ArrowRightCircle, ArrowLeftCircle
 } from "react-bootstrap-icons";
 
-const iconOptions = [
+// Icon key sets for each type
+const playPausePairs = [
   { label: <span><PlayFill /> / <PauseFill /></span>, value: 'play-fill pause-fill' },
   { label: <span><PlayCircle /> / <PauseCircle /></span>, value: 'play-circle pause-circle' },
   { label: <span><Play /> / <Pause /></span>, value: 'play pause' },
@@ -22,42 +17,59 @@ const iconOptions = [
   { label: <span><PlayBtn /> / <PauseBtn /></span>, value: 'play-btn pause-btn' },
 ];
 
-export  function IconSelect({ label = "Icon Pair", value, onChange }) {
+const prevNextPairs = [
+  { label: <span><SkipBackward /> / <SkipForward /></span>, value: 'skip-backward skip-forward' },
+  { label: <span><CaretLeft /> / <CaretRight /></span>, value: 'caret-left caret-right' },
+  { label: <span><Rewind /> / <FastForward /></span>, value: 'rewind fast-forward' },
+  { label: <span><ArrowLeftCircle /> / <ArrowRightCircle /></span>, value: 'arrow-left-circle arrow-right-circle' },
+];
+
+const closeIcons = [
+  { label: <X />, value: 'x' },
+  { label: <XCircle />, value: 'x-circle' },
+  { label: <XCircleFill />, value: 'x-circle-fill' },
+  { label: <XOctagon />, value: 'x-octagon' },
+  { label: <XOctagonFill />, value: 'x-octagon-fill' },
+];
+
+export default function IconSelect({ label = "Icon", value, onChange, type = "playpause" }) {
   const [active, setActive] = useState(false);
   const toggleActive = useCallback(() => setActive((a) => !a), []);
+
+  let iconOptions;
+  if (type === "playpause") iconOptions = playPausePairs;
+  else if (type === "prevnext") iconOptions = prevNextPairs;
+  else if (type === "close") iconOptions = closeIcons;
+  else iconOptions = [];
+
   const selected = iconOptions.find((opt) => opt.value === value);
 
   return (
-    <div >
-       <div style={{ marginBottom: 4}}>
-
-      <Label id="icon-select-label"> {label}</Label>
-       </div>
-      
+    <div>
+      <div style={{ marginBottom: 4 }}>
+        <Label id="icon-select-label">{label}</Label>
+      </div>
       <Popover
         active={active}
         activator={
-            <Button onClick={toggleActive} disclosure fullWidth size="large" id="icon-select-button">
-              {selected?.label || "Select Icons"}
-            </Button>
+          <Button onClick={toggleActive} disclosure fullWidth size="large" id="icon-select-button">
+            {selected?.label || "Select Icon"}
+          </Button>
         }
         onClose={toggleActive}
-        >
-
-        <div style={{ width: "5rem", justifyContent: "center", alignItems: "center", display: "flex" }}>
-            <ActionList
+      >
+        <div style={{ width: "7rem", justifyContent: "center", alignItems: "center", display: "flex" }}>
+          <ActionList
             items={iconOptions.map((opt) => ({
-                content: opt.label,
-                onAction: () => {
-                    onChange(opt.value);
-                    toggleActive();
-                    },
-                }))}
-                />
-         </div>
-
+              content: opt.label,
+              onAction: () => {
+                onChange(opt.value);
+                toggleActive();
+              },
+            }))}
+          />
+        </div>
       </Popover>
-        
     </div>
   );
 }
