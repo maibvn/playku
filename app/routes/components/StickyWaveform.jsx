@@ -24,7 +24,7 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
         container: waveformRef.current,
         waveColor: settings.waveColor,
         progressColor: settings.progressColor,
-        height: settings.waveformHeight,
+        height: settings.playerHeight - 32,
         barWidth: settings.waveformBarWidth,
         responsive: true,
         cursorColor: settings.iconColor,
@@ -65,7 +65,7 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
     audioUrl,
     settings.waveColor,
     settings.progressColor,
-    settings.waveformHeight,
+    settings.playerHeight,
     settings.waveformBarWidth,
     settings.iconColor,
   ]);
@@ -85,9 +85,8 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
       ref={waveformRef}
       style={{
         flex: 1,
-        height: settings.waveformHeight,
         minWidth: 80,
-        margin: "0 16px",
+        // margin: "0 16px",
       }}
     />
   );

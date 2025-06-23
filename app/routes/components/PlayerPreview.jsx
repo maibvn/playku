@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import StickyWaveform from "./StickyWaveform";
 import IconParser from "./IconParser";
-import "./PlayerPreview.css"; // Assuming you have some styles for the player
+import "./PlayerPreview.css";
 
-// Demo products array
 const DEMO_PRODUCTS = [
   {
     audioUrl:
@@ -24,6 +23,7 @@ const DEMO_PRODUCTS = [
 function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playerVisible, setPlayerVisible] = useState(true);
 
   const autoLoopRef = useRef(settings.autoLoop);
   useEffect(() => {
@@ -53,11 +53,23 @@ function PlayerPreview({ settings, elements }) {
   const handlePlayProduct = (idx) => {
     setCurrentIdx(idx);
     setIsPlaying(false);
+    setPlayerVisible(true); // Show player with slide up when a song is selected
   };
 
   // Play/pause button handler
   const handlePlayPause = () => {
     setIsPlaying((prev) => !prev);
+    setPlayerVisible(true); // Show player with slide up when play is pressed
+  };
+
+  // Show player when play is triggered externally
+  useEffect(() => {
+    if (isPlaying) setPlayerVisible(true);
+  }, [isPlaying]);
+
+  const handleClosePlayer = () => {
+    setPlayerVisible(false); // Hide player with slide down
+    setIsPlaying(false);
   };
 
   const currentProduct = DEMO_PRODUCTS[currentIdx];
@@ -65,94 +77,84 @@ function PlayerPreview({ settings, elements }) {
   return (
     <div>
       {/* Product images grid */}
-      <div
-        style={{
-          display: "flex",
-          gap: 48,
-          marginBottom: 32,
-        }}
-      >
+      <div className="playku-product-grid">
         {DEMO_PRODUCTS.map((product, idx) => (
-          <div key={product.audioUrl} style={{ textAlign: "center" }}>
+          <div key={product.audioUrl} className="playku-product-item">
             <div
-              style={{ position: "relative", width: 120, margin: "0 auto" }}
-              className={settings.showPlayIconOnImage ? "" : "playku-img-hover-group"}
+              className={
+                "playku-product-img-wrap" +
+                (settings.showPlayIconOnImage ? "" : " playku-img-hover-group")
+              }
             >
               <img
                 src={product.image}
                 alt={product.title}
-                style={{
-                  width: 120,
-                  height: 120,
-                  objectFit: "cover",
-                  borderRadius: 8,
-                  boxShadow: "0 2px 8px #0006",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-                // onClick={() => handlePlayProduct(idx)}
+                className="playku-product-img"
+                onClick={() => handlePlayProduct(idx)}
               />
               <span
+                className={
+                  "playku-product-img-icon" +
+                  (settings.showPlayIconOnImage ? "" : " playku-img-hover-icon")
+                }
                 style={{
-                  position: "absolute",
-                  top: 8,
-                  left: 8,
-                  background: "rgba(0,0,0,0.5)",
-                  borderRadius: "50%",
-                  width: 32,
-                  height: 32,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  zIndex: 10,
+                  ...getIconPositionStyle(settings.iconPosition),
                   opacity:
-                    settings.showPlayIconOnImage || (idx === currentIdx && isPlaying)
+                    settings.showPlayIconOnImage ||
+                    (idx === currentIdx && isPlaying)
                       ? 1
                       : 0,
                   pointerEvents:
-                    settings.showPlayIconOnImage || (idx === currentIdx && isPlaying)
+                    settings.showPlayIconOnImage ||
+                    (idx === currentIdx && isPlaying)
                       ? "auto"
                       : "none",
-                  transition: "opacity 0.2s",
                 }}
-                className={settings.showPlayIconOnImage ? "" : "playku-img-hover-icon"}
                 onClick={() => {
                   if (idx === currentIdx) {
                     setIsPlaying((prev) => !prev);
+                    setPlayerVisible(true);
                   } else {
                     handlePlayProduct(idx);
                     setIsPlaying(true);
                   }
                 }}
               >
-                {idx === currentIdx && isPlaying
-                  ? <IconParser iconKey={pauseIconKey} color={settings.iconColor} size={20} />
-                  : <IconParser iconKey={playIconKey} color={settings.iconColor} size={20} />}
+                {idx === currentIdx && isPlaying ? (
+                  <IconParser
+                    iconKey={pauseIconKey}
+                    color={settings.iconColor}
+                    size={20}
+                  />
+                ) : (
+                  <IconParser
+                    iconKey={playIconKey}
+                    color={settings.iconColor}
+                    size={20}
+                  />
+                )}
               </span>
             </div>
-            <div style={{ marginTop: 8, fontWeight: "bold" }}>
-              {product.title}
-            </div>
+            <div className="playku-product-title">{product.title}</div>
           </div>
         ))}
       </div>
 
       {/* Sticky player (one only) */}
       <div
+        className={
+          "playku-sticky-player" +
+          (playerVisible
+            ? " playku-sticky-slide-up"
+            : " playku-sticky-slide-down")
+        }
         style={{
-          margin: "32px 0 0 0",
           background: settings.playerBgColor,
           color: settings.iconColor,
           minHeight: settings.playerHeight,
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          padding: "16px 24px",
-          gap: 16,
+          height: settings.playerHeight,
         }}
       >
-        {/* Left elements (image, title, controls) */}
         {visibleElements.map((el) => {
           switch (el.key) {
             case "image":
@@ -161,39 +163,24 @@ function PlayerPreview({ settings, elements }) {
                   key="preview-img"
                   src={currentProduct.image}
                   alt={currentProduct.title}
+                  className="playku-sticky-img"
                   style={{
-                    width: 48,
-                    height: 48,
-                    objectFit: "cover",
-                    borderRadius: 8,
-                    boxShadow: "0 2px 8px #0006",
-                    flexShrink: 0,
+                    height: settings.playerHeight - 16,
+                    maxHeight: settings.playerHeight - 16,
                   }}
                 />
               ) : null;
             case "title":
               return settings.showTitle ? (
-                <span
-                  key="preview-title"
-                  style={{
-                    fontWeight: "bold",
-                    marginRight: 16,
-                    minWidth: 80,
-                    maxWidth: 160,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    flexShrink: 0,
-                  }}
-                >
+                <span key="preview-title" className="playku-sticky-title">
                   {currentProduct.title}
                 </span>
               ) : null;
             case "controls":
               return (
-                <span key="preview-controls" style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                <span key="preview-controls" className="playku-sticky-controls">
                   <span
-                    style={{ cursor: "pointer" }}
+                    className="playku-sticky-btn"
                     onClick={() =>
                       setCurrentIdx(
                         (currentIdx - 1 + DEMO_PRODUCTS.length) %
@@ -201,23 +188,41 @@ function PlayerPreview({ settings, elements }) {
                       )
                     }
                   >
-                    <IconParser iconKey={prevIconKey} color={settings.iconColor} size={20} />
+                    <IconParser
+                      iconKey={prevIconKey}
+                      color={settings.iconColor}
+                      size={20}
+                    />
                   </span>
                   <span
-                    style={{ cursor: "pointer" }}
+                    className="playku-sticky-btn"
                     onClick={handlePlayPause}
                   >
-                    {isPlaying
-                      ? <IconParser iconKey={pauseIconKey} color={settings.iconColor} size={32} />
-                      : <IconParser iconKey={playIconKey} color={settings.iconColor} size={32} />}
+                    {isPlaying ? (
+                      <IconParser
+                        iconKey={pauseIconKey}
+                        color={settings.iconColor}
+                        size={32}
+                      />
+                    ) : (
+                      <IconParser
+                        iconKey={playIconKey}
+                        color={settings.iconColor}
+                        size={32}
+                      />
+                    )}
                   </span>
                   <span
-                    style={{ cursor: "pointer" }}
+                    className="playku-sticky-btn"
                     onClick={() =>
                       setCurrentIdx((currentIdx + 1) % DEMO_PRODUCTS.length)
                     }
                   >
-                    <IconParser iconKey={nextIconKey} color={settings.iconColor} size={20} />
+                    <IconParser
+                      iconKey={nextIconKey}
+                      color={settings.iconColor}
+                      size={20}
+                    />
                   </span>
                 </span>
               );
@@ -225,8 +230,7 @@ function PlayerPreview({ settings, elements }) {
               return null;
           }
         })}
-        {/* Waveform expands to fill remaining space */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center" }}>
+        <div className="playku-sticky-waveform">
           <StickyWaveform
             audioUrl={currentProduct.audioUrl}
             settings={settings}
@@ -234,17 +238,44 @@ function PlayerPreview({ settings, elements }) {
             onEnded={handleEnded}
           />
         </div>
-        {/* Close button always at the end */}
         <span
           key="preview-close"
-          style={{ marginLeft: 16, cursor: "pointer", flexShrink: 0 }}e={{ marginLeft: 16, cursor: "pointer", flexShrink: 0 }}
+          className="playku-sticky-close"
           title="This will close the player"
+          onClick={handleClosePlayer}
         >
-         <IconParser iconKey={closeIconKey} color={settings.iconColor} size={20} />
+          <IconParser
+            iconKey={closeIconKey}
+            color={settings.iconColor}
+            size={20}
+          />
         </span>
       </div>
     </div>
   );
+}
+
+function getIconPositionStyle(position) {
+  switch (position) {
+    case "center":
+      return {
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        right: "auto",
+        bottom: "auto",
+      };
+    case "top-left":
+      return { top: 8, left: 8, right: "auto", bottom: "auto", transform: "none" };
+    case "top-right":
+      return { top: 8, right: 8, left: "auto", bottom: "auto", transform: "none" };
+    case "bottom-left":
+      return { bottom: 8, left: 8, top: "auto", right: "auto", transform: "none" };
+    case "bottom-right":
+      return { bottom: 8, right: 8, top: "auto", left: "auto", transform: "none" };
+    default:
+      return { top: 8, left: 8, right: "auto", bottom: "auto", transform: "none" };
+  }
 }
 
 export default PlayerPreview;
