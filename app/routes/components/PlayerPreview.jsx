@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import StickyWaveform from "./StickyWaveform"; // <-- Add this import
 
 // Demo products array
 const DEMO_PRODUCTS = [
@@ -18,132 +19,40 @@ const DEMO_PRODUCTS = [
   },
 ];
 
-function StickyWaveform({ audioUrl, settings, isPlaying, onEnded }) {
-  const waveformRef = useRef(null);
-  const wavesurfer = useRef(null);
-
-  useEffect(() => {
-    let WaveSurfer;
-    let ws;
-
-    async function setup() {
-      if (wavesurfer.current) {
-        wavesurfer.current.destroy();
-        wavesurfer.current = null;
-      }
-      WaveSurfer = (await import("wavesurfer.js")).default;
-      ws = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: settings.waveColor,
-        progressColor: settings.progressColor,
-        height: settings.waveformHeight,
-        barWidth: settings.waveformBarWidth,
-        responsive: true,
-        cursorColor: settings.iconColor,
-        interact: true,
-      });
-      ws.load(audioUrl);
-
-      ws.on("finish", onEnded);
-
-      wavesurfer.current = ws;
-    }
-
-    if (waveformRef.current && isPlaying) {
-      setup();
-    }
-
-    return () => {
-      if (wavesurfer.current) {
-        wavesurfer.current.destroy();
-        wavesurfer.current = null;
-      }
-    };
-  }, [
-    audioUrl,
-    settings.waveColor,
-    settings.progressColor,
-    settings.waveformHeight,
-    settings.waveformBarWidth,
-    settings.iconColor,
-    onEnded,
-    isPlaying,
-  ]);
-
-  // Sync play/pause with parent
-  useEffect(() => {
-    if (wavesurfer.current) {
-      if (isPlaying) {
-        wavesurfer.current.play();
-      } else {
-        wavesurfer.current.pause();
-      }
-    }
-  }, [isPlaying]);
-
-  // Only render the waveform container when playing
-  if (!isPlaying) return null;
-
-  return (
-    <div
-      ref={waveformRef}
-      style={{
-        flex: 1,
-        height: settings.waveformHeight,
-        minWidth: 80,
-        maxWidth: 300,
-        margin: "0 16px",
-      }}
-    />
-  );
-}
-
-export function PlayerPreview({ settings, elements }) {
+function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef(null);
-
+   
   const [prevIcon, nextIcon] = settings.nextPrevIcons.split(",");
   const [playIcon, pauseIcon] = settings.playPauseIcons.split(",");
   const visibleElements = elements.filter((el) => el.visible);
 
   // Handle auto-play next
-  const handleEnded = () => {
-    setIsPlaying(false);
-    setCurrentIdx((idx) => (idx + 1) % DEMO_PRODUCTS.length);
-  };
+  const handleEnded = useCallback(() => {
+    setCurrentIdx(prevIdx => {
+      if (prevIdx < DEMO_PRODUCTS.length - 1) {
+        setIsPlaying(true);
+        return prevIdx + 1;
+      } else if (settings.autoLoop) {
+        setIsPlaying(true);
+        return 0;
+      } else {
+        setIsPlaying(false);
+        return prevIdx;
+      }
+    });
+  }, [settings.autoLoop]);
 
   // Play selected product
   const handlePlayProduct = (idx) => {
     setCurrentIdx(idx);
     setIsPlaying(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   };
 
   // Play/pause button handler
   const handlePlayPause = () => {
-    if (!audioRef.current) return;
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    }
+    setIsPlaying((prev) => !prev);
   };
-
-  // Sync play/pause state with audio element
-  useEffect(() => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.play();
-    } else {
-      audioRef.current.pause();
-    }
-  }, [isPlaying, currentIdx]);
 
   const currentProduct = DEMO_PRODUCTS[currentIdx];
 
@@ -195,8 +104,12 @@ export function PlayerPreview({ settings, elements }) {
                   fontSize: 20,
                 }}
                 onClick={() => {
-                  handlePlayProduct(idx);
-                  setIsPlaying(true);
+                  if (idx === currentIdx) {
+                    setIsPlaying((prev) => !prev); // toggle play/pause for current product
+                  } else {
+                    handlePlayProduct(idx);
+                    setIsPlaying(true); // play new product
+                  }
                 }}
               >
                 {idx === currentIdx && isPlaying
@@ -225,7 +138,7 @@ export function PlayerPreview({ settings, elements }) {
           gap: 16,
         }}
       >
-        {visibleElements.map((el, idx) => {
+        {visibleElements.map((el) => {
           switch (el.key) {
             case "image":
               return settings.showImage ? (
@@ -279,12 +192,6 @@ export function PlayerPreview({ settings, elements }) {
                   >
                     {prevIcon || "⏮️"}
                   </button>
-                  <audio
-                    ref={audioRef}
-                    src={currentProduct.audioUrl}
-                    onEnded={handleEnded}
-                    style={{ display: "none" }}
-                  />
                   <button
                     style={{
                       background: "none",
@@ -315,17 +222,6 @@ export function PlayerPreview({ settings, elements }) {
                   </button>
                 </span>
               );
-            case "waveform":
-              // Render waveform inside sticky player, only when playing
-              return (
-                <StickyWaveform
-                  key="sticky-waveform"
-                  audioUrl={currentProduct.audioUrl}
-                  settings={settings}
-                  isPlaying={isPlaying}
-                  onEnded={handleEnded}
-                />
-              );
             case "close":
               return (
                 <button
@@ -347,7 +243,16 @@ export function PlayerPreview({ settings, elements }) {
               return null;
           }
         })}
+        {/* Always render waveform for current product */}
+        <StickyWaveform
+          audioUrl={currentProduct.audioUrl}
+          settings={settings}
+          isPlaying={isPlaying}
+          onEnded={handleEnded}
+        />
       </div>
     </div>
   );
 }
+
+export default PlayerPreview;
