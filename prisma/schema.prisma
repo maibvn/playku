@@ -61,6 +61,7 @@ model PlaykuSettings {
 
   playerHeight            Int
   playerBgColor           String
+  playerBgOpacity   Float   @default(1)
   iconPosition            String  
   iconColor               String
   waveColor               String

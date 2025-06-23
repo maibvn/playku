@@ -90,7 +90,6 @@ function PlayerPreview({ settings, elements }) {
                 src={product.image}
                 alt={product.title}
                 className="playku-product-img"
-                onClick={() => handlePlayProduct(idx)}
               />
               <span
                 className={
@@ -150,6 +149,7 @@ function PlayerPreview({ settings, elements }) {
         }
         style={{
           background: settings.playerBgColor,
+          opacity: settings.playerBgOpacity,
           color: settings.iconColor,
           minHeight: settings.playerHeight,
           height: settings.playerHeight,

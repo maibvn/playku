@@ -19,6 +19,7 @@ import IconSelect from "./components/IconSelect";
 const DEFAULT_SETTINGS = {
   playerHeight: 75,
   playerBgColor: "#181818",
+  playerBgOpacity: 1,
   iconPosition: "bottom-left",
   iconColor: "#fff",
   waveColor: "#888",
@@ -146,30 +147,31 @@ export default function PlayerStyleSettingsPage() {
                     onChange={handlePlayerHeightChange}
                   />
                   <TextField
-                    label="Waveform Bar Width (px)"
-                    type="number"
-                    value={String(settings.waveformBarWidth)}
-                    onChange={handleSettingChange("waveformBarWidth")}
-                    min={0}
-                    step={1}
-                  />
-                  <TextField
-                    label="Player Background Color"
+                    label="Background Color"
                     type="color"
                     value={settings.playerBgColor}
                     onChange={handleSettingChange("playerBgColor")}
                     autoComplete="off"
                   />
                   <TextField
-                    label="Icon Color"
-                    type="color"
-                    value={settings.iconColor}
-                    onChange={handleSettingChange("iconColor")}
+                    label="Background Opacity"
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={String(settings.playerBgOpacity ?? 1)}
+                    onChange={handleSettingChange("playerBgOpacity")}
                     autoComplete="off"
                   />
-                </FormLayout.Group>
-                <FormLayout.Group condensed>
                   <TextField
+                    label="Waveform Bar Width"
+                    type="number"
+                    value={String(settings.waveformBarWidth)}
+                    onChange={handleSettingChange("waveformBarWidth")}
+                    min={0}
+                    step={1}
+                  />
+                   <TextField
                     label="Waveform Color"
                     type="color"
                     value={settings.waveColor}
@@ -183,6 +185,22 @@ export default function PlayerStyleSettingsPage() {
                     onChange={handleSettingChange("progressColor")}
                     autoComplete="off"
                   />
+                  <TextField
+                    label="Icon Color"
+                    type="color"
+                    value={settings.iconColor}
+                    onChange={handleSettingChange("iconColor")}
+                    autoComplete="off"
+                  />
+                </FormLayout.Group>
+                <FormLayout.Group condensed>
+                 <Select
+                    label="Icon Position"
+                    options={ICON_POSITION_OPTIONS}
+                    value={settings.iconPosition}
+                    onChange={handleIconPositionChange}
+                  />
+                  
                   <IconSelect
                     label="Play/Pause Icons"
                     type="playpause"
@@ -224,12 +242,7 @@ export default function PlayerStyleSettingsPage() {
                   />
                 </FormLayout.Group>
                 <FormLayout.Group condensed>
-                  <Select
-                    label="Icon Position"
-                    options={ICON_POSITION_OPTIONS}
-                    value={settings.iconPosition}
-                    onChange={handleIconPositionChange}
-                  />
+                  
                   <Checkbox
                     label="Auto Loop"
                     checked={settings.autoLoop}

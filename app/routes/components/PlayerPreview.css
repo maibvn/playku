@@ -26,7 +26,6 @@
   object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 2px 8px #0006;
-  cursor: pointer;
   transition: all 0.2s;
 }
 
