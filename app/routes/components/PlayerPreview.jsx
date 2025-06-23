@@ -22,26 +22,30 @@ const DEMO_PRODUCTS = [
 function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-   
+
+  const autoLoopRef = useRef(settings.autoLoop);
+  useEffect(() => {
+    autoLoopRef.current = settings.autoLoop;
+  }, [settings.autoLoop]);
+
   const [prevIcon, nextIcon] = settings.nextPrevIcons.split(",");
   const [playIcon, pauseIcon] = settings.playPauseIcons.split(",");
   const visibleElements = elements.filter((el) => el.visible);
 
   // Handle auto-play next
   const handleEnded = useCallback(() => {
-    setCurrentIdx(prevIdx => {
-      if (prevIdx < DEMO_PRODUCTS.length - 1) {
-        setIsPlaying(true);
-        return prevIdx + 1;
-      } else if (settings.autoLoop) {
-        setIsPlaying(true);
-        return 0;
-      } else {
-        setIsPlaying(false);
-        return prevIdx;
-      }
-    });
-  }, [settings.autoLoop]);
+    console.log(2, autoLoopRef.current);
+
+    if (currentIdx < DEMO_PRODUCTS.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+      setIsPlaying(true);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(false);
+    }
+  }, [currentIdx]);
 
   // Play selected product
   const handlePlayProduct = (idx) => {
