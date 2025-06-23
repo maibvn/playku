@@ -11,21 +11,22 @@ import {
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState } from "react";
-import { PlayerPreview } from "./components/PlayerPreview";
+import  PlayerPreview  from "./components/PlayerPreview";
+
 
 // All schema keys with defaults
 const DEFAULT_SETTINGS = {
-  playerHeight: 72,
+  playerHeight: 72, //normal, small, big which should change waveform height too
   playerBgColor: "#181818",
-  iconPosition: "center",
-  iconColor: "#fff",
-  waveColor: "#888",
+  iconPosition: "center", //top-left, top-right, bottom-left, bottom-right, center
+  iconColor: "#fff", //icon on product image
+  waveColor: "#888", //set same color for icon + controls icons
   progressColor: "#fff",
   waveformHeight: 48,
   waveformBarWidth: 2,
-  playPauseIcons: "▶️,⏸️",
-  nextPrevIcons: "⏮️,⏭️",
-  closeIcon: "✖",
+  playPauseIcons: "bi-play, bi-pause", 
+  nextPrevIcons: "bi-skip-backward, bi-skip-forward", 
+  closeIcon: "bi-x", 
   autoLoop: true,
   showPlayIconOnImage: true,
   showTitle: true,

@@ -1,5 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import StickyWaveform from "./StickyWaveform"; // <-- Add this import
+import StickyWaveform from "./StickyWaveform";
+import {
+  PlayFill,
+  PauseFill,
+  PlayCircleFill,
+  PauseCircleFill,
+  PlayCircle,
+  PauseCircle,
+  Play,
+  Pause,
+  PlayBtn,
+  PauseBtn,
+  SkipForward,
+  SkipBackward,
+  X,
+  CaretLeft,
+  CaretRight,
+} from "react-bootstrap-icons";
 
 // Demo products array
 const DEMO_PRODUCTS = [
@@ -18,6 +35,25 @@ const DEMO_PRODUCTS = [
       "https://maibuivn.myshopify.com/cdn/shop/files/Risebeta_new.webp?v=1739400793&width=533",
   },
 ];
+// Map string keys to icon components (like in AudioPreview)
+const iconNameMap = {
+  "bi-play": Play,
+  "bi-pause": Pause,
+  "bi-play-fill": PlayFill,
+  "bi-pause-fill": PauseFill,
+  "bi-play-circle": PlayCircle,
+  "bi-pause-circle": PauseCircle,
+  "bi-play-circle-fill": PlayCircleFill,
+  "bi-pause-circle-fill": PauseCircleFill,
+  "bi-play-btn": PlayBtn,
+  "bi-pause-btn": PauseBtn,
+  "bi-skip-forward": SkipForward,
+  "bi-skip-backward": SkipBackward,
+  "bi-caret-left": CaretLeft,
+  "bi-caret-right": CaretRight,
+  "bi-x": X,
+  // Add more as needed
+};
 
 function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -28,13 +64,22 @@ function PlayerPreview({ settings, elements }) {
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
 
-  const [prevIcon, nextIcon] = settings.nextPrevIcons.split(",");
-  const [playIcon, pauseIcon] = settings.playPauseIcons.split(",");
+  const [playIconKey, pauseIconKey] = settings.playPauseIcons.split(",");
+  const [prevIconKey, nextIconKey] = settings.nextPrevIcons.split(",");
+  const closeIconKey = settings.closeIcon;
+
+  // Helper to render a react-bootstrap-icon by string key (like AudioPreview)
+  const renderIcon = (iconKey, size = 20, color = settings.iconColor, extraProps = {}) => {
+    const IconComponent = iconNameMap[iconKey.trim()];
+    return IconComponent ? (
+      <IconComponent size={size} color={color} {...extraProps} />
+    ) : null;
+  };
+
   const visibleElements = elements.filter((el) => el.visible);
 
   // Handle auto-play next
   const handleEnded = useCallback(() => {
-    console.log(2, autoLoopRef.current);
 
     if (currentIdx < DEMO_PRODUCTS.length - 1) {
       setCurrentIdx(currentIdx + 1);
@@ -89,14 +134,12 @@ function PlayerPreview({ settings, elements }) {
                 }}
                 onClick={() => handlePlayProduct(idx)}
               />
-              <button
+              <span
                 style={{
                   position: "absolute",
                   top: 8,
                   left: 8,
                   background: "rgba(0,0,0,0.5)",
-                  color: settings.iconColor,
-                  border: "none",
                   borderRadius: "50%",
                   width: 32,
                   height: 32,
@@ -105,21 +148,20 @@ function PlayerPreview({ settings, elements }) {
                   justifyContent: "center",
                   cursor: "pointer",
                   zIndex: 10,
-                  fontSize: 20,
                 }}
                 onClick={() => {
                   if (idx === currentIdx) {
-                    setIsPlaying((prev) => !prev); // toggle play/pause for current product
+                    setIsPlaying((prev) => !prev);
                   } else {
                     handlePlayProduct(idx);
-                    setIsPlaying(true); // play new product
+                    setIsPlaying(true);
                   }
                 }}
               >
                 {idx === currentIdx && isPlaying
-                  ? (pauseIcon || "⏸️")
-                  : (playIcon || "▶️")}
-              </button>
+                  ? renderIcon(pauseIconKey)
+                  : renderIcon(playIconKey)}
+              </span>
             </div>
             <div style={{ marginTop: 8, fontWeight: "bold" }}>
               {product.title}
@@ -178,15 +220,9 @@ function PlayerPreview({ settings, elements }) {
               ) : null;
             case "controls":
               return (
-                <span key="preview-controls" style={{ display: "flex", gap: 8 }}>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: settings.iconColor,
-                      fontSize: 20,
-                      cursor: "pointer",
-                    }}
+                <span key="preview-controls" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <span
+                    style={{ cursor: "pointer" }}
                     onClick={() =>
                       setCurrentIdx(
                         (currentIdx - 1 + DEMO_PRODUCTS.length) %
@@ -194,54 +230,38 @@ function PlayerPreview({ settings, elements }) {
                       )
                     }
                   >
-                    {prevIcon || "⏮️"}
-                  </button>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: settings.iconColor,
-                      fontSize: 24,
-                      cursor: "pointer",
-                    }}
+                    {renderIcon(prevIconKey)}
+                  </span>
+                  <span
+                    style={{ cursor: "pointer" }}
                     onClick={handlePlayPause}
                   >
                     {isPlaying
-                      ? (pauseIcon || "⏸️")
-                      : (playIcon || "▶️")}
-                  </button>
-                  <button
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: settings.iconColor,
-                      fontSize: 20,
-                      cursor: "pointer",
-                    }}
+                      ? renderIcon(pauseIconKey, 32)
+                      : renderIcon(playIconKey, 32)}
+                  </span>
+                  <span
+                    style={{ cursor: "pointer" }}
                     onClick={() =>
                       setCurrentIdx((currentIdx + 1) % DEMO_PRODUCTS.length)
                     }
                   >
-                    {nextIcon || "⏭️"}
-                  </button>
+                    {renderIcon(nextIconKey)}
+                  </span>
                 </span>
               );
             case "close":
               return (
-                <button
+                <span
                   key="preview-close"
-                  style={{
-                    marginLeft: 16,
-                    fontSize: 20,
-                    background: "none",
-                    border: "none",
-                    color: settings.iconColor,
-                    cursor: "pointer",
-                  }}
+                  style={{ marginLeft: 16, cursor: "pointer" }}
                   title="This will close the player"
+                  onClick={() => {
+                    // Add your close logic here
+                  }}
                 >
-                  {settings.closeIcon || "✖"}
-                </button>
+                  {renderIcon(closeIconKey)}
+                </span>
               );
             default:
               return null;
