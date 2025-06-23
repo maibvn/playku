@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import StickyWaveform from "./StickyWaveform";
 import IconParser from "./IconParser";
+import "./PlayerPreview.css"; // Assuming you have some styles for the player
 
 // Demo products array
 const DEMO_PRODUCTS = [
@@ -73,7 +74,10 @@ function PlayerPreview({ settings, elements }) {
       >
         {DEMO_PRODUCTS.map((product, idx) => (
           <div key={product.audioUrl} style={{ textAlign: "center" }}>
-            <div style={{ position: "relative", width: 120, margin: "0 auto" }}>
+            <div
+              style={{ position: "relative", width: 120, margin: "0 auto" }}
+              className={settings.showPlayIconOnImage ? "" : "playku-img-hover-group"}
+            >
               <img
                 src={product.image}
                 alt={product.title}
@@ -83,12 +87,10 @@ function PlayerPreview({ settings, elements }) {
                   objectFit: "cover",
                   borderRadius: 8,
                   boxShadow: "0 2px 8px #0006",
-                  opacity: idx === currentIdx ? 1 : 0.7,
-                  filter: idx === currentIdx ? "none" : "grayscale(1)",
                   cursor: "pointer",
                   transition: "all 0.2s",
                 }}
-                onClick={() => handlePlayProduct(idx)}
+                // onClick={() => handlePlayProduct(idx)}
               />
               <span
                 style={{
@@ -104,7 +106,17 @@ function PlayerPreview({ settings, elements }) {
                   justifyContent: "center",
                   cursor: "pointer",
                   zIndex: 10,
+                  opacity:
+                    settings.showPlayIconOnImage || (idx === currentIdx && isPlaying)
+                      ? 1
+                      : 0,
+                  pointerEvents:
+                    settings.showPlayIconOnImage || (idx === currentIdx && isPlaying)
+                      ? "auto"
+                      : "none",
+                  transition: "opacity 0.2s",
                 }}
+                className={settings.showPlayIconOnImage ? "" : "playku-img-hover-icon"}
                 onClick={() => {
                   if (idx === currentIdx) {
                     setIsPlaying((prev) => !prev);
@@ -236,3 +248,10 @@ function PlayerPreview({ settings, elements }) {
 }
 
 export default PlayerPreview;
+
+/*
+.playku-img-hover-group:hover .playku-img-hover-icon {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+*/

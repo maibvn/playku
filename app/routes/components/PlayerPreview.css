@@ -1,0 +1,4 @@
+.playku-img-hover-group:hover .playku-img-hover-icon {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
