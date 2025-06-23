@@ -1,22 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import StickyWaveform from "./StickyWaveform";
-import {
-  PlayFill,
-  PauseFill,
-  PlayCircleFill,
-  PauseCircleFill,
-  PlayCircle,
-  PauseCircle,
-  Play,
-  Pause,
-  PlayBtn,
-  PauseBtn,
-  SkipForward,
-  SkipBackward,
-  X,
-  CaretLeft,
-  CaretRight,
-} from "react-bootstrap-icons";
+import IconParser from "./IconParser";
 
 // Demo products array
 const DEMO_PRODUCTS = [
@@ -35,25 +19,6 @@ const DEMO_PRODUCTS = [
       "https://maibuivn.myshopify.com/cdn/shop/files/Risebeta_new.webp?v=1739400793&width=533",
   },
 ];
-// Map string keys to icon components (like in AudioPreview)
-const iconNameMap = {
-  "bi-play": Play,
-  "bi-pause": Pause,
-  "bi-play-fill": PlayFill,
-  "bi-pause-fill": PauseFill,
-  "bi-play-circle": PlayCircle,
-  "bi-pause-circle": PauseCircle,
-  "bi-play-circle-fill": PlayCircleFill,
-  "bi-pause-circle-fill": PauseCircleFill,
-  "bi-play-btn": PlayBtn,
-  "bi-pause-btn": PauseBtn,
-  "bi-skip-forward": SkipForward,
-  "bi-skip-backward": SkipBackward,
-  "bi-caret-left": CaretLeft,
-  "bi-caret-right": CaretRight,
-  "bi-x": X,
-  // Add more as needed
-};
 
 function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -68,19 +33,10 @@ function PlayerPreview({ settings, elements }) {
   const [prevIconKey, nextIconKey] = settings.nextPrevIcons.split(",");
   const closeIconKey = settings.closeIcon;
 
-  // Helper to render a react-bootstrap-icon by string key (like AudioPreview)
-  const renderIcon = (iconKey, size = 20, color = settings.iconColor, extraProps = {}) => {
-    const IconComponent = iconNameMap[iconKey.trim()];
-    return IconComponent ? (
-      <IconComponent size={size} color={color} {...extraProps} />
-    ) : null;
-  };
-
   const visibleElements = elements.filter((el) => el.visible);
 
   // Handle auto-play next
   const handleEnded = useCallback(() => {
-
     if (currentIdx < DEMO_PRODUCTS.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setIsPlaying(true);
@@ -159,8 +115,8 @@ function PlayerPreview({ settings, elements }) {
                 }}
               >
                 {idx === currentIdx && isPlaying
-                  ? renderIcon(pauseIconKey)
-                  : renderIcon(playIconKey)}
+                  ? <IconParser iconKey={pauseIconKey} color={settings.iconColor} size={20} />
+                  : <IconParser iconKey={playIconKey} color={settings.iconColor} size={20} />}
               </span>
             </div>
             <div style={{ marginTop: 8, fontWeight: "bold" }}>
@@ -184,6 +140,7 @@ function PlayerPreview({ settings, elements }) {
           gap: 16,
         }}
       >
+        {/* Left elements (image, title, controls) */}
         {visibleElements.map((el) => {
           switch (el.key) {
             case "image":
@@ -198,6 +155,7 @@ function PlayerPreview({ settings, elements }) {
                     objectFit: "cover",
                     borderRadius: 8,
                     boxShadow: "0 2px 8px #0006",
+                    flexShrink: 0,
                   }}
                 />
               ) : null;
@@ -213,6 +171,7 @@ function PlayerPreview({ settings, elements }) {
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    flexShrink: 0,
                   }}
                 >
                   {currentProduct.title}
@@ -220,7 +179,7 @@ function PlayerPreview({ settings, elements }) {
               ) : null;
             case "controls":
               return (
-                <span key="preview-controls" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <span key="preview-controls" style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
                   <span
                     style={{ cursor: "pointer" }}
                     onClick={() =>
@@ -230,15 +189,15 @@ function PlayerPreview({ settings, elements }) {
                       )
                     }
                   >
-                    {renderIcon(prevIconKey)}
+                    <IconParser iconKey={prevIconKey} color={settings.iconColor} size={20} />
                   </span>
                   <span
                     style={{ cursor: "pointer" }}
                     onClick={handlePlayPause}
                   >
                     {isPlaying
-                      ? renderIcon(pauseIconKey, 32)
-                      : renderIcon(playIconKey, 32)}
+                      ? <IconParser iconKey={pauseIconKey} color={settings.iconColor} size={32} />
+                      : <IconParser iconKey={playIconKey} color={settings.iconColor} size={32} />}
                   </span>
                   <span
                     style={{ cursor: "pointer" }}
@@ -246,34 +205,31 @@ function PlayerPreview({ settings, elements }) {
                       setCurrentIdx((currentIdx + 1) % DEMO_PRODUCTS.length)
                     }
                   >
-                    {renderIcon(nextIconKey)}
+                    <IconParser iconKey={nextIconKey} color={settings.iconColor} size={20} />
                   </span>
-                </span>
-              );
-            case "close":
-              return (
-                <span
-                  key="preview-close"
-                  style={{ marginLeft: 16, cursor: "pointer" }}
-                  title="This will close the player"
-                  onClick={() => {
-                    // Add your close logic here
-                  }}
-                >
-                  {renderIcon(closeIconKey)}
                 </span>
               );
             default:
               return null;
           }
         })}
-        {/* Always render waveform for current product */}
-        <StickyWaveform
-          audioUrl={currentProduct.audioUrl}
-          settings={settings}
-          isPlaying={isPlaying}
-          onEnded={handleEnded}
-        />
+        {/* Waveform expands to fill remaining space */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center" }}>
+          <StickyWaveform
+            audioUrl={currentProduct.audioUrl}
+            settings={settings}
+            isPlaying={isPlaying}
+            onEnded={handleEnded}
+          />
+        </div>
+        {/* Close button always at the end */}
+        <span
+          key="preview-close"
+          style={{ marginLeft: 16, cursor: "pointer", flexShrink: 0 }}e={{ marginLeft: 16, cursor: "pointer", flexShrink: 0 }}
+          title="This will close the player"
+        >
+         <IconParser iconKey={closeIconKey} color={settings.iconColor} size={20} />
+        </span>
       </div>
     </div>
   );

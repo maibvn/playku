@@ -87,7 +87,6 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
         flex: 1,
         height: settings.waveformHeight,
         minWidth: 80,
-        maxWidth: 300,
         margin: "0 16px",
       }}
     />
