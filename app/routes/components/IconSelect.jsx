@@ -32,6 +32,11 @@ const closeIcons = [
   { label: <XOctagonFill />, value: 'x-octagon-fill' },
 ];
 
+const iconOnProductPairs = [
+  { label: <span><Play /> / <Pause /></span>, value: 'play pause' },
+  { label: <span><PlayFill /> / <PauseFill /></span>, value: 'play-fill pause-fill' },
+];
+
 export default function IconSelect({ label = "Icon", value, onChange, type = "playpause" }) {
   const [active, setActive] = useState(false);
   const toggleActive = useCallback(() => setActive((a) => !a), []);
@@ -40,6 +45,7 @@ export default function IconSelect({ label = "Icon", value, onChange, type = "pl
   if (type === "playpause") iconOptions = playPausePairs;
   else if (type === "prevnext") iconOptions = prevNextPairs;
   else if (type === "close") iconOptions = closeIcons;
+  else if (type === "icononproduct") iconOptions = iconOnProductPairs;
   else iconOptions = [];
 
   const selected = iconOptions.find((opt) => opt.value === value);

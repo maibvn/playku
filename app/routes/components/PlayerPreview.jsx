@@ -30,6 +30,7 @@ function PlayerPreview({ settings, elements }) {
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
 
+  const [iconPlayOnProduct, iconPauseOnProduct] = settings.iconOnProduct.split(",");
   const [playIconKey, pauseIconKey] = settings.playPauseIcons.split(",");
   const [prevIconKey, nextIconKey] = settings.nextPrevIcons.split(",");
   const closeIconKey = settings.closeIcon;
@@ -92,22 +93,15 @@ function PlayerPreview({ settings, elements }) {
                 className="playku-product-img"
               />
               <span
-                className={
-                  "playku-product-img-icon" +
-                  (settings.showPlayIconOnImage ? "" : " playku-img-hover-icon")
-                }
+                className="playku-product-img-icon"
                 style={{
                   ...getIconPositionStyle(settings.iconPosition),
-                  opacity:
-                    settings.showPlayIconOnImage ||
-                    (idx === currentIdx && isPlaying)
-                      ? 1
-                      : 0,
-                  pointerEvents:
-                    settings.showPlayIconOnImage ||
-                    (idx === currentIdx && isPlaying)
-                      ? "auto"
-                      : "none",
+                  backgroundColor: settings.iconOnProductBgColor,
+                  display: settings.showPlayIconOnImage ||
+                    (idx === currentIdx && isPlaying) ? "flex" : "none",
+                  opacity: settings.playerBgOpacity,
+                  width: settings.iconOnProductSize,
+                  height: settings.iconOnProductSize,
                 }}
                 onClick={() => {
                   if (idx === currentIdx) {
@@ -121,15 +115,15 @@ function PlayerPreview({ settings, elements }) {
               >
                 {idx === currentIdx && isPlaying ? (
                   <IconParser
-                    iconKey={pauseIconKey}
-                    color={settings.iconColor}
-                    size={20}
+                    iconKey={iconPauseOnProduct}
+                    color={settings.iconOnProductColor}
+                    size={settings.iconOnProductSize - 10}
                   />
                 ) : (
                   <IconParser
-                    iconKey={playIconKey}
-                    color={settings.iconColor}
-                    size={20}
+                    iconKey={iconPlayOnProduct}
+                    color={settings.iconOnProductColor}
+                    size={settings.iconOnProductSize - 10}
                   />
                 )}
               </span>

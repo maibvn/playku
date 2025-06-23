@@ -68,6 +68,10 @@ model PlaykuSettings {
   progressColor           String
   waveformBarWidth        Int
 
+  iconOnProduct          String
+  iconOnProductColor          String
+  iconOnProductBgColor          String
+  iconOnProductSize       Int
   playPauseIcons          String
   nextPrevIcons           String
   closeIcon               String

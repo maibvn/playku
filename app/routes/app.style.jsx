@@ -20,14 +20,22 @@ const DEFAULT_SETTINGS = {
   playerHeight: 75,
   playerBgColor: "#181818",
   playerBgOpacity: 1,
+
   iconPosition: "bottom-left",
-  iconColor: "#fff",
-  waveColor: "#888",
-  progressColor: "#fff",
+  iconColor: "#ffffff",
+  waveColor: "#888888",
+  progressColor: "#ffffff",
   waveformBarWidth: 2,
+
+  iconOnProduct: "bi-play, bi-pause",
+  iconOnProductColor: "#ffffff",
+  iconOnProductBgColor: "#000000",
+  iconOnProductSize: 32,
+
   playPauseIcons: "bi-play, bi-pause",
   nextPrevIcons: "bi-skip-backward, bi-skip-forward",
   closeIcon: "bi-x",
+
   autoLoop: true,
   showPlayIconOnImage: true,
   showTitle: true,
@@ -53,6 +61,17 @@ const PLAYER_HEIGHT_VALUES = {
   medium: 75,
   large: 82,
 };
+const ICON_PRODUCT_SIZE_OPTIONS = [
+  { label: "Small", value: "small" },
+  { label: "Medium", value: "medium" },
+  { label: "Large", value: "large" },
+];
+
+const ICON_PRODUCT_SIZE_VALUES = {
+  small: 32,
+  medium: 42,
+  large: 52,
+};
 
 const ICON_POSITION_OPTIONS = [
   { label: "Center", value: "center" },
@@ -68,14 +87,6 @@ export default function PlayerStyleSettingsPage() {
   const [elements, setElements] = useState(DEFAULT_ELEMENTS);
 
 
-  // --- Toggle element visibility ---
-  const handleToggle = (index) => (checked) => {
-    setElements((prev) =>
-      prev.map((el, i) =>
-        i === index ? { ...el, visible: checked } : el
-      )
-    );
-  };
 
   // --- Handle settings change ---
   const handleSettingChange = (field) => (value) => {
@@ -127,7 +138,8 @@ export default function PlayerStyleSettingsPage() {
         JSON.stringify(settings, null, 2)
     );
   };
-
+  
+ 
   return (
     <Page>
       <TitleBar title="Audio Player Designer" />
@@ -154,7 +166,7 @@ export default function PlayerStyleSettingsPage() {
                     autoComplete="off"
                   />
                   <TextField
-                    label="Background Opacity"
+                    label="Opacity"
                     type="number"
                     min={0}
                     max={1}
@@ -194,13 +206,58 @@ export default function PlayerStyleSettingsPage() {
                   />
                 </FormLayout.Group>
                 <FormLayout.Group condensed>
-                 <Select
-                    label="Icon Position"
+                  <IconSelect
+                    label="Icon On Product"
+                    type="icononproduct"
+                    value={settings.iconOnProduct.replace(/bi-/g, '').replace(/, /g, ' ')}
+                    onChange={(val) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        iconOnProduct: val
+                          .split(' ')
+                          .map((k) => `bi-${k}`)
+                          .join(', ')
+                      }))
+                    }
+                  />
+
+                   <Select
+                      label="Size"
+                      options={ICON_PRODUCT_SIZE_OPTIONS}
+                      value={
+                        Object.entries(ICON_PRODUCT_SIZE_VALUES).find(
+                          ([, v]) => v === settings.iconOnProductSize
+                        )?.[0] || "medium"
+                      }
+                      onChange={(val) =>
+                        setSettings((prev) => ({
+                          ...prev,
+                          iconOnProductSize: ICON_PRODUCT_SIZE_VALUES[val],
+                        }))
+                      }
+                    />
+ <Select
+                    label="Position"
                     options={ICON_POSITION_OPTIONS}
                     value={settings.iconPosition}
                     onChange={handleIconPositionChange}
                   />
-                  
+                <TextField
+                  label="Background"
+                  type="color"
+                  value={settings.iconOnProductBgColor}
+                  onChange={handleSettingChange("iconOnProductBgColor")}
+                  autoComplete="off"
+                />
+                  <TextField
+                    label="Color"
+                    type="color"
+                    value={settings.iconOnProductColor}
+                    onChange={handleSettingChange("iconOnProductColor")}
+                    autoComplete="off"
+                  />
+
+                 
                   <IconSelect
                     label="Play/Pause Icons"
                     type="playpause"
