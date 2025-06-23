@@ -5,7 +5,7 @@ import {
   Pause, PauseFill, PauseCircle, PauseCircleFill, PauseBtn,
   SkipForward, SkipBackward, FastForward, Rewind,
   CaretLeft, CaretRight, X, XCircle, XCircleFill, XOctagon, XOctagonFill, CaretDown,
-  ArrowRightCircle, ArrowLeftCircle
+  ArrowRightCircle, ArrowLeftCircle, ChevronDown
 } from "react-bootstrap-icons";
 
 // Icon key sets for each type
@@ -26,6 +26,8 @@ const prevNextPairs = [
 
 const closeIcons = [
   { label: <X />, value: 'x' },
+  { label: <CaretDown />, value: 'caret-down' },
+  { label: <ChevronDown />, value: 'chevron-down' },
   { label: <XCircle />, value: 'x-circle' },
   { label: <XCircleFill />, value: 'x-circle-fill' },
   { label: <XOctagon />, value: 'x-octagon' },

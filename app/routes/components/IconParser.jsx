@@ -24,6 +24,7 @@ import {
   XCircleFill,
   XOctagon,
   XOctagonFill,
+  ChevronDown, // <-- add this import
 } from "react-bootstrap-icons";
 
 // IconParser component
@@ -64,6 +65,7 @@ function IconParser({ iconKey, size = 20, color = "black", ...extraProps }) {
 
     // Dropdown caret
     "bi-caret-down": CaretDown,
+    "bi-chevron-down": ChevronDown, // <--
   };
 
   const IconComponent = iconMap[iconKey?.trim()];

@@ -105,10 +105,10 @@
 }
 
 .playku-sticky-close {
-  margin-left: 16px;
   cursor: pointer;
   flex-shrink: 0;
 }
+
 /* ANIMATION */
 
 .playku-sticky-player {
