@@ -59,18 +59,17 @@ model PlaykuSettings {
   id                      String   @id @default(cuid())
   shop                    String
 
+  playerStyle             String // 'waveform', 'line', 'spectrum'
+
   playerHeight            Int
   playerBgColor           String
-  playerBgOpacity   Float   @default(1)
+  playerBgOpacity         Float   @default(1)
   iconPosition            String  
   iconColor               String
-  waveColor               String
-  progressColor           String
-  waveformBarWidth        Int
 
-  iconOnProduct          String
-  iconOnProductColor          String
-  iconOnProductBgColor          String
+  iconOnProduct           String
+  iconOnProductColor      String
+  iconOnProductBgColor    String
   iconOnProductSize       Int
   playPauseIcons          String
   nextPrevIcons           String
@@ -80,4 +79,11 @@ model PlaykuSettings {
   showPlayIconOnImage     Boolean  @default(true)
   showTitle               Boolean  @default(true)
   showImage               Boolean  @default(true)
+
+  // Style-specific settings (JSON based on playerStyle)
+  // waveform: { "waveColor": "#ffffff", "progressColor": "#1db954", "waveformBarWidth": 2 }
+  // spectrum: { "barCount": 32, "barColor": "#ff00cc" }
+  // line: { "progressColor": "#1db954", "lineColor": "#dddddd", "height": 4 }
+  styleSettings           Json?
 }
+

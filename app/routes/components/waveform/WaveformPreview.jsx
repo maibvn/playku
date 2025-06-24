@@ -1,26 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import StickyWaveform from "./StickyWaveform";
-import IconParser from "./IconParser";
-import "./PlayerPreview.css";
+import IconParser from "../shared/IconParser";
+import "../shared/PlayerPreview.css";
 
-const DEMO_PRODUCTS = [
-  {
-    audioUrl:
-      "https://dl.dropboxusercontent.com/s/cvl7pvjvlzt0i7bhko3iu/DMPAuth-Cajon-Cajon-9.mp3?rlkey=vszq7fflb7tomuqf3xz7ngt00&st=euobgg5j",
-    title: "Dirty Kick - Sample Pack",
-    image:
-      "https://maibuivn.myshopify.com/cdn/shop/files/dirtykick_new.webp?v=1739400793",
-  },
-  {
-    audioUrl:
-      "https://cdn.shopify.com/s/files/1/0259/9026/6977/files/Retro_Vibes_Bundle.mp3?v=1721995574",
-    title: "Rise - Beta - Sample Pack",
-    image:
-      "https://maibuivn.myshopify.com/cdn/shop/files/Risebeta_new.webp?v=1739400793&width=533",
-  },
-];
+function WaveformPreview({ settings, elements, demoProducts }) {
 
-function PlayerPreview({ settings, elements }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerVisible, setPlayerVisible] = useState(true);
@@ -36,10 +20,9 @@ function PlayerPreview({ settings, elements }) {
   const closeIconKey = settings.closeIcon;
 
   const visibleElements = elements.filter((el) => el.visible);
-
   // Handle auto-play next
   const handleEnded = useCallback(() => {
-    if (currentIdx < DEMO_PRODUCTS.length - 1) {
+    if (currentIdx < demoProducts.length - 1) {
       setCurrentIdx(currentIdx + 1);
       setIsPlaying(true);
     } else if (autoLoopRef.current) {
@@ -48,7 +31,7 @@ function PlayerPreview({ settings, elements }) {
     } else {
       setIsPlaying(false);
     }
-  }, [currentIdx]);
+  }, [currentIdx, demoProducts.length]);
 
   // Play selected product
   const handlePlayProduct = (idx) => {
@@ -73,13 +56,12 @@ function PlayerPreview({ settings, elements }) {
     setIsPlaying(false);
   };
 
-  const currentProduct = DEMO_PRODUCTS[currentIdx];
+  const currentProduct = demoProducts[currentIdx];
 
   return (
-    <div>
-      {/* Product images grid */}
+    <div>      {/* Product images grid */}
       <div className="playku-product-grid">
-        {DEMO_PRODUCTS.map((product, idx) => (
+        {demoProducts.map((product, idx) => (
           <div key={product.audioUrl} className="playku-product-item">
             <div
               className={
@@ -172,13 +154,12 @@ function PlayerPreview({ settings, elements }) {
               ) : null;
             case "controls":
               return (
-                <span key="preview-controls" className="playku-sticky-controls">
-                  <span
+                <span key="preview-controls" className="playku-sticky-controls">                  <span
                     className="playku-sticky-btn"
                     onClick={() =>
                       setCurrentIdx(
-                        (currentIdx - 1 + DEMO_PRODUCTS.length) %
-                          DEMO_PRODUCTS.length
+                        (currentIdx - 1 + demoProducts.length) %
+                          demoProducts.length
                       )
                     }
                   >
@@ -205,11 +186,10 @@ function PlayerPreview({ settings, elements }) {
                         size={32}
                       />
                     )}
-                  </span>
-                  <span
+                  </span>                  <span
                     className="playku-sticky-btn"
                     onClick={() =>
-                      setCurrentIdx((currentIdx + 1) % DEMO_PRODUCTS.length)
+                      setCurrentIdx((currentIdx + 1) % demoProducts.length)
                     }
                   >
                     <IconParser
@@ -272,11 +252,4 @@ function getIconPositionStyle(position) {
   }
 }
 
-export default PlayerPreview;
-
-/*
-.playku-img-hover-group:hover .playku-img-hover-icon {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-}
-*/
+export default WaveformPreview;
