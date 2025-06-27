@@ -107,7 +107,7 @@ export default function SpectrumAnalyzer({
       const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
       const shadowY = mainSpectrumHeight;
       const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
-      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.6)); // Brighter - 60% opacity at top
       shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
       
       ctx.fillStyle = shadowGradient;
@@ -151,7 +151,7 @@ export default function SpectrumAnalyzer({
       const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
       const shadowY = mainSpectrumHeight;
       const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
-      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.6)); // Brighter - 60% opacity at top
       shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
       
       ctx.fillStyle = shadowGradient;
@@ -389,7 +389,7 @@ export default function SpectrumAnalyzer({
         const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
         const shadowY = mainSpectrumHeight;
         const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
-        shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+        shadowGradient.addColorStop(0, hexToRgba(barColor, 0.6)); // Brighter - 60% opacity at top
         shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
         
         ctx.fillStyle = shadowGradient;

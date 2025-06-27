@@ -61,7 +61,7 @@ const WAVEFORM_SETTINGS = {
 const SPECTRUM_SETTINGS = {
   ...BASE_SETTINGS,
   barCount: 64, // More reasonable bar count for better performance and visual clarity
-  barColor: "#ff00cc",
+  barColor: "#888888",
 };
 
 const LINE_SETTINGS = {
