@@ -20,7 +20,7 @@ export default function SpectrumAnalyzer({
   const [hasError, setHasError] = useState(false);
   const [hasInitialDraw, setHasInitialDraw] = useState(false);
 
-  // Draw static bars (initial state)
+  // Draw static bars (initial state) - simulates typical audio spectrum first frame
   const drawStaticBars = () => {
     if (!canvasRef.current) return;
 
@@ -34,16 +34,32 @@ export default function SpectrumAnalyzer({
     ctx.clearRect(0, 0, width, height);
 
     for (let i = 0; i < barCount; i++) {
-      // Create a subtle static pattern
-      const baseHeight = height * 0.1; // 10% height for static bars
-      const randomVariation = Math.random() * height * 0.05; // Small random variation
-      const barHeight = baseHeight + randomVariation;
+      // Create a realistic spectrum pattern - lower frequencies have more energy
+      const normalizedPosition = i / (barCount - 1);
+      
+      // Bass frequencies (left side) typically have more energy
+      let energyLevel;
+      if (normalizedPosition < 0.2) {
+        // Bass range - higher energy
+        energyLevel = 0.3 + Math.random() * 0.2;
+      } else if (normalizedPosition < 0.5) {
+        // Mid range - moderate energy
+        energyLevel = 0.2 + Math.random() * 0.15;
+      } else {
+        // High frequencies - lower energy, gradually decreasing
+        const highFreqFactor = 1 - (normalizedPosition - 0.5) * 2;
+        energyLevel = (0.1 + Math.random() * 0.1) * highFreqFactor;
+      }
+      
+      // Add minimum noise floor
+      const noiseFloor = height * 0.02;
+      const barHeight = Math.max(noiseFloor, energyLevel * height * 0.6);
 
       const x = i * barWidth;
       const y = height - barHeight;
 
       ctx.fillStyle = barColor;
-      ctx.globalAlpha = 0.3; // Make static bars semi-transparent
+      ctx.globalAlpha = 0.4; // Slightly more visible than before
       ctx.fillRect(x, y, barWidth - 1, barHeight);
     }
     

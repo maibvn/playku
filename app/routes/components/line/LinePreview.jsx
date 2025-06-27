@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, Text, BlockStack } from "@shopify/polaris";
 import ProductGrid from "../shared/ProductGrid";
+import IconParser from "../shared/IconParser";
 import "../shared/PlayerPreview.css";
 
 export default function LinePreview({ settings, elements, demoProducts }) {
@@ -28,6 +29,12 @@ export default function LinePreview({ settings, elements, demoProducts }) {
   };
 
   const currentProduct = demoProducts[currentIdx];
+
+  // Parse icon settings like WaveformPreview
+  const [iconPlayOnProduct, iconPauseOnProduct] = settings.iconOnProduct.split(",");
+  const [playIconKey, pauseIconKey] = settings.playPauseIcons.split(",");
+  const [prevIconKey, nextIconKey] = settings.nextPrevIcons.split(",");
+  const closeIconKey = settings.closeIcon;
 
   const progressBarStyle = {
     flex: 1,
@@ -114,13 +121,29 @@ export default function LinePreview({ settings, elements, demoProducts }) {
                       )
                     }
                   >
-                    ⏮
+                    <IconParser
+                      iconKey={prevIconKey}
+                      color={settings.iconColor}
+                      size={20}
+                    />
                   </span>
                   <span
                     className="playku-sticky-btn"
                     onClick={handlePlayPauseClick}
                   >
-                    {isPlaying ? '⏸' : '▶'}
+                    {isPlaying ? (
+                      <IconParser
+                        iconKey={pauseIconKey}
+                        color={settings.iconColor}
+                        size={32}
+                      />
+                    ) : (
+                      <IconParser
+                        iconKey={playIconKey}
+                        color={settings.iconColor}
+                        size={32}
+                      />
+                    )}
                   </span>
                   <span
                     className="playku-sticky-btn"
@@ -128,7 +151,11 @@ export default function LinePreview({ settings, elements, demoProducts }) {
                       setCurrentIdx((currentIdx + 1) % demoProducts.length)
                     }
                   >
-                    ⏭
+                    <IconParser
+                      iconKey={nextIconKey}
+                      color={settings.iconColor}
+                      size={20}
+                    />
                   </span>
                 </span>
               );
@@ -145,7 +172,11 @@ export default function LinePreview({ settings, elements, demoProducts }) {
           title="This will close the player"
           onClick={handleClosePlayer}
         >
-          ✕
+          <IconParser
+            iconKey={closeIconKey}
+            color={settings.iconColor}
+            size={20}
+          />
         </span>
       </div>
     </div>
