@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, Text, BlockStack } from "@shopify/polaris";
 import ProductGrid from "../shared/ProductGrid";
+import SpectrumAnalyzer from "../shared/SpectrumAnalyzer";
 import "../shared/PlayerPreview.css";
 
 export default function SpectrumPreview({ settings, elements, demoProducts }) {
@@ -27,36 +28,14 @@ export default function SpectrumPreview({ settings, elements, demoProducts }) {
     setIsPlaying(false);
   };
 
-  const currentProduct = demoProducts[currentIdx];
-
-  const spectrumStyle = {
-    flex: 1,
-    height: '40px',
-    display: 'flex',
-    alignItems: 'end',
-    gap: '2px',
-    justifyContent: 'center',
+  // Handle audio ended
+  const handleEnded = () => {
+    setIsPlaying(false);
   };
 
-  // Generate mock spectrum bars
-  const generateSpectrumBars = () => {
-    const bars = [];
-    for (let i = 0; i < settings.barCount; i++) {
-      const height = Math.random() * 35 + 5;
-      bars.push(
-        <div
-          key={i}
-          style={{
-            width: `${Math.max(1, 100 / settings.barCount - 1)}px`,
-            height: `${height}px`,
-            backgroundColor: settings.barColor,
-            borderRadius: '1px',
-          }}
-        />
-      );
-    }
-    return bars;
-  };  return (
+  const currentProduct = demoProducts[currentIdx];
+
+  return (
     <div>
       {/* Product images grid */}
       <ProductGrid
@@ -149,8 +128,16 @@ export default function SpectrumPreview({ settings, elements, demoProducts }) {
               return null;
           }
         })}
-        <div className="playku-sticky-waveform" style={spectrumStyle}>
-          {generateSpectrumBars()}
+        <div className="playku-sticky-waveform">
+          <SpectrumAnalyzer
+            audioUrl={currentProduct.audioUrl}
+            isPlaying={isPlaying}
+            barCount={settings.barCount}
+            barColor={settings.barColor}
+            height={40}
+            onEnded={handleEnded}
+            fallbackMode={false}
+          />
         </div>
         <span
           key="preview-close"
