@@ -4,53 +4,76 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
   const waveformRef = useRef(null);
   const wavesurfer = useRef(null);
   const readyRef = useRef(false);
+  const setupTimeoutRef = useRef(null);
+  const isSettingUpRef = useRef(false);
 
   useEffect(() => {
-    let WaveSurfer;
-    let ws;
+    // Clear any pending setup
+    if (setupTimeoutRef.current) {
+      clearTimeout(setupTimeoutRef.current);
+    }
 
-    async function setup() {
-      // Clear previous waveform DOM
-      if (waveformRef.current) {
-        waveformRef.current.innerHTML = "";
+    // Debounce rapid changes
+    setupTimeoutRef.current = setTimeout(async () => {
+      // Prevent multiple simultaneous setups
+      if (isSettingUpRef.current) {
+        return;
       }
-      if (wavesurfer.current) {
-        wavesurfer.current.destroy();
-        wavesurfer.current = null;
-      }
-      readyRef.current = false;
-      WaveSurfer = (await import("wavesurfer.js")).default;
-      ws = WaveSurfer.create({
-        container: waveformRef.current,
-        waveColor: settings.waveColor,
-        progressColor: settings.progressColor,
-        height: settings.playerHeight - 32,
-        barWidth: settings.waveformBarWidth,
-        responsive: true,
-        cursorColor: settings.iconColor,
-        interact: true,
-      });
-      ws.load(audioUrl);
-
-      ws.on("finish", () => {
-        if (typeof onEnded === "function") onEnded();
-      });
-
-      ws.on("ready", () => {
-        readyRef.current = true;
-        if (isPlaying) {
-          ws.play();
+      
+      isSettingUpRef.current = true;
+      
+      try {
+        // Clear previous waveform DOM and instance
+        if (waveformRef.current) {
+          waveformRef.current.innerHTML = "";
         }
-      });
+        if (wavesurfer.current) {
+          wavesurfer.current.destroy();
+          wavesurfer.current = null;
+        }
+        readyRef.current = false;
 
-      wavesurfer.current = ws;
-    }
+        if (!waveformRef.current) {
+          return;
+        }
 
-    if (waveformRef.current) {
-      setup();
-    }
+        const WaveSurfer = (await import("wavesurfer.js")).default;
+        const ws = WaveSurfer.create({
+          container: waveformRef.current,
+          waveColor: settings.waveColor,
+          progressColor: settings.progressColor,
+          height: settings.playerHeight - 32,
+          barWidth: settings.waveformBarWidth,
+          responsive: true,
+          cursorColor: settings.iconColor,
+          interact: true,
+        });
+
+        ws.load(audioUrl);
+
+        ws.on("finish", () => {
+          if (typeof onEnded === "function") onEnded();
+        });
+
+        ws.on("ready", () => {
+          readyRef.current = true;
+          if (isPlaying) {
+            ws.play();
+          }
+        });
+
+        wavesurfer.current = ws;
+      } catch (error) {
+        console.error("Error setting up waveform:", error);
+      } finally {
+        isSettingUpRef.current = false;
+      }
+    }, 100); // 100ms debounce
 
     return () => {
+      if (setupTimeoutRef.current) {
+        clearTimeout(setupTimeoutRef.current);
+      }
       if (wavesurfer.current) {
         wavesurfer.current.destroy();
         wavesurfer.current = null;
@@ -59,6 +82,7 @@ export default function StickyWaveform({ audioUrl, settings, isPlaying, onEnded 
         waveformRef.current.innerHTML = "";
       }
       readyRef.current = false;
+      isSettingUpRef.current = false;
     };
   // Only depend on audioUrl and settings
   }, [

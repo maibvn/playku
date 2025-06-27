@@ -3,7 +3,7 @@
 client_id = "b4b4a851dda6d20e1babfeea1f9e2eb3"
 name = "PlayKu"
 handle = "playku"
-application_url = "https://stylish-royalty-dealers-diff.trycloudflare.com"
+application_url = "https://disabled-medicine-enforcement-linda.trycloudflare.com"
 embedded = true
 
 [build]
@@ -26,10 +26,10 @@ api_version = "2025-04"
 scopes = "write_products, read_products, read_metaobject_definitions, write_metaobject_definitions, read_metaobjects, write_metaobjects, read_script_tags, write_script_tags, read_files, write_files"
 
 [auth]
-redirect_urls = ["https://stylish-royalty-dealers-diff.trycloudflare.com/auth/callback", "https://stylish-royalty-dealers-diff.trycloudflare.com/auth/shopify/callback", "https://stylish-royalty-dealers-diff.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://disabled-medicine-enforcement-linda.trycloudflare.com/auth/callback", "https://disabled-medicine-enforcement-linda.trycloudflare.com/auth/shopify/callback", "https://disabled-medicine-enforcement-linda.trycloudflare.com/api/auth/callback"]
 
 [app_proxy]
-url = "https://stylish-royalty-dealers-diff.trycloudflare.com/app-proxy/playku"
+url = "https://disabled-medicine-enforcement-linda.trycloudflare.com/app-proxy/playku"
 subpath = "playku"
 prefix = "apps"
 

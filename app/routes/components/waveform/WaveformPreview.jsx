@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import StickyWaveform from "./StickyWaveform";
 import IconParser from "../shared/IconParser";
+import ProductGrid from "../shared/ProductGrid";
 import "../shared/PlayerPreview.css";
 
 function WaveformPreview({ settings, elements, demoProducts }) {
@@ -39,11 +40,22 @@ function WaveformPreview({ settings, elements, demoProducts }) {
     setIsPlaying(false);
     setPlayerVisible(true); // Show player with slide up when a song is selected
   };
-
   // Play/pause button handler
   const handlePlayPause = () => {
     setIsPlaying((prev) => !prev);
     setPlayerVisible(true); // Show player with slide up when play is pressed
+  };
+
+  // Handle product click from grid
+  const handleProductClick = (idx) => {
+    handlePlayProduct(idx);
+    setIsPlaying(true);
+  };
+
+  // Handle play/pause click from grid
+  const handlePlayPauseFromGrid = () => {
+    setIsPlaying((prev) => !prev);
+    setPlayerVisible(true);
   };
 
   // Show player when play is triggered externally
@@ -57,63 +69,17 @@ function WaveformPreview({ settings, elements, demoProducts }) {
   };
 
   const currentProduct = demoProducts[currentIdx];
-
   return (
-    <div>      {/* Product images grid */}
-      <div className="playku-product-grid">
-        {demoProducts.map((product, idx) => (
-          <div key={product.audioUrl} className="playku-product-item">
-            <div
-              className={
-                "playku-product-img-wrap" +
-                (settings.showPlayIconOnImage ? "" : " playku-img-hover-group")
-              }
-            >
-              <img
-                src={product.image}
-                alt={product.title}
-                className="playku-product-img"
-              />
-              <span
-                className="playku-product-img-icon"
-                style={{
-                  ...getIconPositionStyle(settings.iconPosition),
-                  backgroundColor: settings.iconOnProductBgColor,
-                  display: settings.showPlayIconOnImage ||
-                    (idx === currentIdx && isPlaying) ? "flex" : "none",
-                  opacity: settings.playerBgOpacity,
-                  width: settings.iconOnProductSize,
-                  height: settings.iconOnProductSize,
-                }}
-                onClick={() => {
-                  if (idx === currentIdx) {
-                    setIsPlaying((prev) => !prev);
-                    setPlayerVisible(true);
-                  } else {
-                    handlePlayProduct(idx);
-                    setIsPlaying(true);
-                  }
-                }}
-              >
-                {idx === currentIdx && isPlaying ? (
-                  <IconParser
-                    iconKey={iconPauseOnProduct}
-                    color={settings.iconOnProductColor}
-                    size={settings.iconOnProductSize - 10}
-                  />
-                ) : (
-                  <IconParser
-                    iconKey={iconPlayOnProduct}
-                    color={settings.iconOnProductColor}
-                    size={settings.iconOnProductSize - 10}
-                  />
-                )}
-              </span>
-            </div>
-            <div className="playku-product-title">{product.title}</div>
-          </div>
-        ))}
-      </div>
+    <div>
+      {/* Product images grid */}
+      <ProductGrid
+        demoProducts={demoProducts}
+        settings={settings}
+        currentIdx={currentIdx}
+        isPlaying={isPlaying}
+        onProductClick={handleProductClick}
+        onPlayPauseClick={handlePlayPauseFromGrid}
+      />
 
       {/* Sticky player (one only) */}
       <div
@@ -227,29 +193,6 @@ function WaveformPreview({ settings, elements, demoProducts }) {
       </div>
     </div>
   );
-}
-
-function getIconPositionStyle(position) {
-  switch (position) {
-    case "center":
-      return {
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        right: "auto",
-        bottom: "auto",
-      };
-    case "top-left":
-      return { top: 8, left: 8, right: "auto", bottom: "auto", transform: "none" };
-    case "top-right":
-      return { top: 8, right: 8, left: "auto", bottom: "auto", transform: "none" };
-    case "bottom-left":
-      return { bottom: 8, left: 8, top: "auto", right: "auto", transform: "none" };
-    case "bottom-right":
-      return { bottom: 8, right: 8, top: "auto", left: "auto", transform: "none" };
-    default:
-      return { top: 8, left: 8, right: "auto", bottom: "auto", transform: "none" };
-  }
 }
 
 export default WaveformPreview;
