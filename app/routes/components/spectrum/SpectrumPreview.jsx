@@ -161,7 +161,7 @@ export default function SpectrumPreview({ settings, elements, demoProducts }) {
             isPlaying={isPlaying}
             barCount={settings.barCount}
             barColor={settings.barColor}
-            height={40}
+            height={60} // Increased height to accommodate spectrum + mirror
             onEnded={handleEnded}
             fallbackMode={false}
           />

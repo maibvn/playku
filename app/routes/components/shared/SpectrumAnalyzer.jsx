@@ -20,50 +20,99 @@ export default function SpectrumAnalyzer({
   const [hasError, setHasError] = useState(false);
   const [hasInitialDraw, setHasInitialDraw] = useState(false);
 
-  // Draw static bars (initial state) - simulates typical audio spectrum first frame
+  // Helper function to convert hex color to rgba
+  const hexToRgba = (hex, alpha) => {
+    const hexColor = hex.replace('#', '');
+    const r = parseInt(hexColor.substr(0, 2), 16);
+    const g = parseInt(hexColor.substr(2, 2), 16);
+    const b = parseInt(hexColor.substr(4, 2), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  // Draw static bars (initial state) - simulates first frame of real spectrum
   const drawStaticBars = () => {
     if (!canvasRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
-    const height = canvas.height;
+    const canvasHeight = canvas.height;
 
+    ctx.clearRect(0, 0, width, canvasHeight);
+
+    // Calculate dimensions - main spectrum takes 60%, shadow takes 40% of total height
+    const mainSpectrumHeight = Math.floor(height * 0.6);
+    const shadowAreaHeight = height - mainSpectrumHeight;
+
+    // Calculate bar width (same as real visualization)
     const barWidth = width / barCount;
+    
+    // Simulate the same data mapping as real analyzer
+    // Real analyzer typically has 1024 or 2048 frequency bins
+    const simulatedDataLength = 1024; // Typical FFT size
+    const dataStep = Math.floor(simulatedDataLength / barCount);
 
-    ctx.clearRect(0, 0, width, height);
-
-    for (let i = 0; i < barCount; i++) {
-      // Create a realistic spectrum pattern - lower frequencies have more energy
-      const normalizedPosition = i / (barCount - 1);
+    // Simulate initial frequency data that matches real audio analyzer output
+    const simulatedFrequencyData = new Array(simulatedDataLength).fill(0);
+    
+    // Fill with realistic frequency distribution
+    for (let i = 0; i < simulatedDataLength; i++) {
+      const normalizedFreq = i / (simulatedDataLength - 1);
+      let baseEnergy;
       
-      // Bass frequencies (left side) typically have more energy
-      let energyLevel;
-      if (normalizedPosition < 0.2) {
-        // Bass range - higher energy
-        energyLevel = 0.3 + Math.random() * 0.2;
-      } else if (normalizedPosition < 0.5) {
-        // Mid range - moderate energy
-        energyLevel = 0.2 + Math.random() * 0.15;
+      if (normalizedFreq < 0.1) {
+        // Sub-bass - strong energy
+        baseEnergy = 55 + Math.sin(i * 0.02) * 20;
+      } else if (normalizedFreq < 0.25) {
+        // Bass - good energy  
+        baseEnergy = 45 + Math.sin(i * 0.03 + 1) * 15;
+      } else if (normalizedFreq < 0.5) {
+        // Mid frequencies - moderate energy
+        baseEnergy = 35 + Math.sin(i * 0.04 + 2) * 12;
+      } else if (normalizedFreq < 0.75) {
+        // High-mid - decreasing energy
+        const falloff = 1 - (normalizedFreq - 0.5) / 0.25;
+        baseEnergy = (25 + Math.sin(i * 0.05 + 3) * 8) * falloff;
       } else {
-        // High frequencies - lower energy, gradually decreasing
-        const highFreqFactor = 1 - (normalizedPosition - 0.5) * 2;
-        energyLevel = (0.1 + Math.random() * 0.1) * highFreqFactor;
+        // High frequencies - minimal energy
+        const falloff = 1 - (normalizedFreq - 0.75) / 0.25;
+        baseEnergy = (15 + Math.sin(i * 0.06 + 4) * 5) * Math.pow(falloff, 1.5);
       }
       
-      // Add minimum noise floor
-      const noiseFloor = height * 0.02;
-      const barHeight = Math.max(noiseFloor, energyLevel * height * 0.6);
+      simulatedFrequencyData[i] = Math.max(2, Math.min(baseEnergy, 85));
+    }
+
+    // Draw bars using the same logic as real visualization
+    for (let i = 0; i < barCount; i++) {
+      // Average frequency data for this bar (same as real analyzer)
+      let sum = 0;
+      const start = i * dataStep;
+      const end = Math.min(start + dataStep, simulatedDataLength);
+      
+      for (let j = start; j < end; j++) {
+        sum += simulatedFrequencyData[j];
+      }
+      
+      const average = sum / (end - start);
+      const barHeight = (average / 255) * mainSpectrumHeight; // Use main spectrum height
 
       const x = i * barWidth;
-      const y = height - barHeight;
+      const y = mainSpectrumHeight - barHeight;
 
+      // Draw main spectrum bar
       ctx.fillStyle = barColor;
-      ctx.globalAlpha = 0.4; // Slightly more visible than before
       ctx.fillRect(x, y, barWidth - 1, barHeight);
+
+      // Draw shadow/reflection below - make it half the bar height but use full shadow area
+      const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
+      const shadowY = mainSpectrumHeight;
+      const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
+      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+      shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
+      
+      ctx.fillStyle = shadowGradient;
+      ctx.fillRect(x, shadowY, barWidth - 1, shadowHeight);
     }
-    
-    ctx.globalAlpha = 1; // Reset alpha
     setHasInitialDraw(true);
   };
 
@@ -74,24 +123,39 @@ export default function SpectrumAnalyzer({
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
-    const height = canvas.height;
+    const canvasHeight = canvas.height;
 
     const barWidth = width / barCount;
     const time = Date.now() * 0.005;
 
-    ctx.clearRect(0, 0, width, height);
+    ctx.clearRect(0, 0, width, canvasHeight);
+
+    // Calculate dimensions - main spectrum takes 60%, shadow takes 40% of total height
+    const mainSpectrumHeight = Math.floor(height * 0.6);
+    const shadowAreaHeight = height - mainSpectrumHeight;
 
     for (let i = 0; i < barCount; i++) {
       // Create animated sine wave pattern
       const frequency = (i / barCount) * 4 + 1;
       const amplitude = Math.sin(time * frequency + i * 0.5) * 0.5 + 0.5;
-      const barHeight = amplitude * height * 0.8;
+      const barHeight = amplitude * mainSpectrumHeight * 0.8;
 
       const x = i * barWidth;
-      const y = height - barHeight;
+      const y = mainSpectrumHeight - barHeight;
 
+      // Draw main spectrum bar
       ctx.fillStyle = barColor;
       ctx.fillRect(x, y, barWidth - 1, barHeight);
+
+      // Draw shadow/reflection below - make it half the bar height but use full shadow area
+      const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
+      const shadowY = mainSpectrumHeight;
+      const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
+      shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+      shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
+      
+      ctx.fillStyle = shadowGradient;
+      ctx.fillRect(x, shadowY, barWidth - 1, shadowHeight);
     }
 
     if (isPlaying) {
@@ -278,7 +342,7 @@ export default function SpectrumAnalyzer({
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
-    const height = canvas.height;
+    const canvasHeight = canvas.height;
 
     const draw = () => {
       // Check if we should continue drawing
@@ -290,7 +354,11 @@ export default function SpectrumAnalyzer({
       analyserRef.current.getByteFrequencyData(dataArrayRef.current);
 
       // Clear canvas
-      ctx.clearRect(0, 0, width, height);
+      ctx.clearRect(0, 0, width, canvasHeight);
+
+      // Calculate dimensions - main spectrum takes 60%, shadow takes 40% of total height
+      const mainSpectrumHeight = Math.floor(height * 0.6);
+      const shadowAreaHeight = height - mainSpectrumHeight;
 
       // Calculate bar width
       const barWidth = width / barCount;
@@ -308,13 +376,24 @@ export default function SpectrumAnalyzer({
         }
         
         const average = sum / (end - start);
-        const barHeight = (average / 255) * height;
+        const barHeight = (average / 255) * mainSpectrumHeight;
 
         const x = i * barWidth;
-        const y = height - barHeight;
+        const y = mainSpectrumHeight - barHeight;
 
+        // Draw main spectrum bar
         ctx.fillStyle = barColor;
         ctx.fillRect(x, y, barWidth - 1, barHeight);
+
+        // Draw shadow/reflection below - make it half the bar height but use full shadow area
+        const shadowHeight = Math.min(barHeight * 0.7, shadowAreaHeight); // Use 70% of bar height or max shadow area
+        const shadowY = mainSpectrumHeight;
+        const shadowGradient = ctx.createLinearGradient(0, shadowY, 0, shadowY + shadowHeight);
+        shadowGradient.addColorStop(0, hexToRgba(barColor, 0.4)); // Higher opacity - 40% at top
+        shadowGradient.addColorStop(1, hexToRgba(barColor, 0)); // 0% opacity at bottom
+        
+        ctx.fillStyle = shadowGradient;
+        ctx.fillRect(x, shadowY, barWidth - 1, shadowHeight);
       }
 
       // Continue animation loop
@@ -330,11 +409,14 @@ export default function SpectrumAnalyzer({
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width;
-      canvas.height = height;
+      canvas.height = height; // Use original height, not 1.5x
+      
+      // Reset the initial draw state when canvas dimensions or bar count changes
+      setHasInitialDraw(false);
       
       // Draw initial static bars
       setTimeout(() => {
-        if (!isPlaying && !hasInitialDraw) {
+        if (!isPlaying) {
           drawStaticBars();
         }
       }, 100); // Small delay to ensure canvas is ready
@@ -346,7 +428,7 @@ export default function SpectrumAnalyzer({
       ref={canvasRef}
       style={{
         width: '100%',
-        height: `${height}px`,
+        height: `${height}px`, // Use original height
         backgroundColor: 'transparent',
       }}
     />
