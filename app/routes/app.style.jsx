@@ -5,6 +5,8 @@ import {
   Text,
   BlockStack,
   Tabs,
+  Modal,
+  TextContainer,
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState, useCallback } from "react";
@@ -87,14 +89,115 @@ const DEFAULT_ELEMENTS = [
 
 // --- Main Page ---
 export default function PlayerStyleSettingsPage() {
+  /*
+   * Data Structure according to Prisma Schema:
+   * 
+   * PlaykuSettings Table:
+   * - id: Auto-generated CUID
+   * - shop: String (required) - Shop domain identifier
+   * - playerStyle: String ('waveform', 'line', 'spectrum')
+   * - playerHeight: Int
+   * - playerBgColor: String
+   * - playerBgOpacity: Float (default: 1)
+   * - iconPosition: String
+   * - iconColor: String
+   * - iconOnProduct: String
+   * - iconOnProductColor: String
+   * - iconOnProductBgColor: String
+   * - iconOnProductSize: Int
+   * - playPauseIcons: String
+   * - nextPrevIcons: String
+   * - closeIcon: String
+   * - autoLoop: Boolean (default: true)
+   * - showPlayIconOnImage: Boolean (default: true)
+   * - showTitle: Boolean (default: true)
+   * - showImage: Boolean (default: true)
+   * - styleSettings: Json? (nullable)
+   *   - For waveform: { "waveColor": "#ffffff", "progressColor": "#1db954", "waveformBarWidth": 2 }
+   *   - For spectrum: { "barCount": 32, "barColor": "#ff00cc" }
+   *   - For line: { "progressColor": "#1db954", "trackColor": "#dddddd", "height": 4 }
+   */
+  
   const [selectedStyleTab, setSelectedStyleTab] = useState(0);
   const [waveformSettings, setWaveformSettings] = useState(WAVEFORM_SETTINGS);
   const [spectrumSettings, setSpectrumSettings] = useState(SPECTRUM_SETTINGS);
   const [lineSettings, setLineSettings] = useState(LINE_SETTINGS);
   const [elements, setElements] = useState(DEFAULT_ELEMENTS);
   const [previewVisible, setPreviewVisible] = useState(true);
+  
+  // Modal state for save confirmation
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState(null);
+  const [currentPlayerType, setCurrentPlayerType] = useState('');
 
   const currentPlayerStyle = PLAYER_STYLES[selectedStyleTab].id;
+
+  // Helper function to format settings data according to Prisma schema
+  const formatSettingsForDatabase = (settingsData, playerStyle) => {
+    /*
+     * Example usage with Prisma:
+     * 
+     * const formattedData = formatSettingsForDatabase(settingsData, 'waveform');
+     * 
+     * // Create new settings
+     * await prisma.playkuSettings.create({
+     *   data: {
+     *     shop: 'example-shop.myshopify.com',
+     *     ...formattedData
+     *   }
+     * });
+     * 
+     * // Or update existing settings
+     * await prisma.playkuSettings.update({
+     *   where: { shop: 'example-shop.myshopify.com' },
+     *   data: formattedData
+     * });
+     */
+    
+    // Define which fields are style-specific for each player type
+    const styleSpecificFields = {
+      waveform: ['waveColor', 'progressColor', 'waveformBarWidth'],
+      spectrum: ['barCount', 'barColor'],
+      line: ['progressColor', 'trackColor', 'height']
+    };
+
+    const styleFields = styleSpecificFields[playerStyle] || [];
+    const styleSettings = {};
+    const generalSettings = { ...settingsData };
+
+    // Extract style-specific fields
+    styleFields.forEach(field => {
+      if (field in settingsData) {
+        styleSettings[field] = settingsData[field];
+        delete generalSettings[field];
+      }
+    });
+
+    return {
+      // Required fields for PlaykuSettings table
+      // shop: 'shop-domain-here', // This should come from the actual shop context
+      playerStyle,
+      playerHeight: generalSettings.playerHeight,
+      playerBgColor: generalSettings.playerBgColor,
+      playerBgOpacity: generalSettings.playerBgOpacity,
+      iconPosition: generalSettings.iconPosition,
+      iconColor: generalSettings.iconColor,
+      iconOnProduct: generalSettings.iconOnProduct,
+      iconOnProductColor: generalSettings.iconOnProductColor,
+      iconOnProductBgColor: generalSettings.iconOnProductBgColor,
+      iconOnProductSize: generalSettings.iconOnProductSize,
+      playPauseIcons: generalSettings.playPauseIcons,
+      nextPrevIcons: generalSettings.nextPrevIcons,
+      closeIcon: generalSettings.closeIcon,
+      autoLoop: generalSettings.autoLoop,
+      showPlayIconOnImage: generalSettings.showPlayIconOnImage,
+      showTitle: generalSettings.showTitle,
+      showImage: generalSettings.showImage,
+      
+      // Style-specific settings as JSON
+      styleSettings: Object.keys(styleSettings).length > 0 ? styleSettings : null
+    };
+  };
 
   const handleStyleTabChange = useCallback((selectedTabIndex) => {
     setSelectedStyleTab(selectedTabIndex);
@@ -104,43 +207,83 @@ export default function PlayerStyleSettingsPage() {
     setPreviewVisible(prev => !prev);
   }, []);
 
+  // Centralized database update function
+  const saveSettingsToDatabase = async (formattedData, playerType) => {
+    try {
+      console.log(`Saving ${playerType} settings to database:`, formattedData);
+      
+      // TODO: Replace with actual database save operation
+      // Example: 
+      // await prisma.playkuSettings.upsert({
+      //   where: { shop: 'your-shop-domain.myshopify.com' },
+      //   update: formattedData,
+      //   create: {
+      //     shop: 'your-shop-domain.myshopify.com',
+      //     ...formattedData
+      //   }
+      // });
+      
+      // Simulate save delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log(`✅ ${playerType} settings saved successfully to database`);
+      
+      return { success: true };
+    } catch (error) {
+      console.error(`❌ Error saving ${playerType} settings:`, error);
+      throw error;
+    }
+  };
+
+  // Modal handlers
+  const handleModalCancel = () => {
+    setShowSaveModal(false);
+    setPendingSaveData(null);
+    setCurrentPlayerType('');
+  };
+
+  const handleModalConfirm = async () => {
+    if (pendingSaveData) {
+      try {
+        await saveSettingsToDatabase(pendingSaveData, currentPlayerType);
+        
+        // Close modal and reset state
+        setShowSaveModal(false);
+        setPendingSaveData(null);
+        setCurrentPlayerType('');
+        
+      } catch (error) {
+        // Error already logged in saveSettingsToDatabase
+        alert('Error saving settings. Please try again.');
+      }
+    }
+  };
+
   const handleWaveformSubmit = (settingsData) => {
-    const finalData = {
-      ...settingsData,
-      playerStyle: 'waveform',
-    };
+    const formattedData = formatSettingsForDatabase(settingsData, 'waveform');
     
-    alert(
-      "Player Style: waveform" +
-      "\nSettings: " +
-      JSON.stringify(finalData, null, 2)
-    );
+    // Show confirmation modal
+    setPendingSaveData(formattedData);
+    setCurrentPlayerType('Waveform');
+    setShowSaveModal(true);
   };
 
   const handleSpectrumSubmit = (settingsData) => {
-    const finalData = {
-      ...settingsData,
-      playerStyle: 'spectrum',
-    };
+    const formattedData = formatSettingsForDatabase(settingsData, 'spectrum');
     
-    alert(
-      "Player Style: spectrum" +
-      "\nSettings: " +
-      JSON.stringify(finalData, null, 2)
-    );
+    // Show confirmation modal
+    setPendingSaveData(formattedData);
+    setCurrentPlayerType('Spectrum');
+    setShowSaveModal(true);
   };
 
   const handleLineSubmit = (settingsData) => {
-    const finalData = {
-      ...settingsData,
-      playerStyle: 'line',
-    };
+    const formattedData = formatSettingsForDatabase(settingsData, 'line');
     
-    alert(
-      "Player Style: line" +
-      "\nSettings: " +
-      JSON.stringify(finalData, null, 2)
-    );
+    // Show confirmation modal
+    setPendingSaveData(formattedData);
+    setCurrentPlayerType('Line');
+    setShowSaveModal(true);
   };
 
   const renderCurrentForm = () => {
@@ -213,6 +356,31 @@ export default function PlayerStyleSettingsPage() {
           </div>
         </Layout.Section>
       </Layout>
+
+      {/* Save confirmation modal */}
+      <Modal
+        open={showSaveModal}
+        onClose={handleModalCancel}
+        title={`Save ${currentPlayerType} Settings`}
+        primaryAction={{
+          content: 'Save Settings',
+          onAction: handleModalConfirm,
+        }}
+        secondaryActions={[
+          {
+            content: 'Cancel',
+            onAction: handleModalCancel,
+          },
+        ]}
+      >
+        <Modal.Section>
+          <TextContainer>
+            <Text variant="bodyMd">
+              Are you sure you want to save these {currentPlayerType} player settings?
+            </Text>
+          </TextContainer>
+        </Modal.Section>
+      </Modal>
     </Page>
   );
 }

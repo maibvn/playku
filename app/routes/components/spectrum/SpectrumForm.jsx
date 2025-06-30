@@ -109,6 +109,7 @@ export default function SpectrumForm({
 
   const handleSubmit = () => {
     if (onSubmit) {
+      // Submit all settings (general + style-specific are all in settings object)
       onSubmit(settings);
     }
   };

@@ -15,6 +15,13 @@ function WaveformPreview({ settings, elements, demoProducts, previewVisible = tr
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
 
+  // Stop audio when preview is hidden
+  useEffect(() => {
+    if (!previewVisible) {
+      setIsPlaying(false);
+    }
+  }, [previewVisible]);
+
   const [iconPlayOnProduct, iconPauseOnProduct] = settings.iconOnProduct.split(",");
   const [playIconKey, pauseIconKey] = settings.playPauseIcons.split(",");
   const [prevIconKey, nextIconKey] = settings.nextPrevIcons.split(",");

@@ -120,6 +120,7 @@ export default function WaveformForm({
 
   const handleSubmit = () => {
     if (onSubmit) {
+      // Submit all settings (general + style-specific are all in settings object)
       onSubmit(settings);
     }
   };

@@ -18,6 +18,15 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
 
+  // Stop audio when preview is hidden
+  useEffect(() => {
+    if (!previewVisible) {
+      setIsPlaying(false);
+      setShowSpectrum(false);
+      setIsTransitioning(false);
+    }
+  }, [previewVisible]);
+
   // Handle spectrum transition when isPlaying changes
   useEffect(() => {
     if (isPlaying && !showSpectrum) {

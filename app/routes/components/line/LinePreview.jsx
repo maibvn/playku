@@ -18,6 +18,15 @@ export default function LinePreview({ settings, elements, demoProducts, previewV
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
 
+  // Stop audio when preview is hidden
+  useEffect(() => {
+    if (!previewVisible && audioRef.current) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      setProgress(0);
+    }
+  }, [previewVisible]);
+
   // Handle product click from grid
   const handleProductClick = (idx) => {
     setCurrentIdx(idx);
@@ -71,16 +80,20 @@ export default function LinePreview({ settings, elements, demoProducts, previewV
 
   // Audio event handlers
   const handleAudioEnded = useCallback(() => {
-    setProgress(0);
-    if (currentIdx < demoProducts.length - 1) {
-      setCurrentIdx(currentIdx + 1);
-      setIsPlaying(true);
-    } else if (autoLoopRef.current) {
-      setCurrentIdx(0);
-      setIsPlaying(true);
-    } else {
-      setIsPlaying(false);
-    }
+    setProgress(100); // Ensure progress reaches 100% when audio ends
+    
+    // Small delay to show completion before moving to next track
+    setTimeout(() => {
+      if (currentIdx < demoProducts.length - 1) {
+        setCurrentIdx(currentIdx + 1);
+        setIsPlaying(true);
+      } else if (autoLoopRef.current) {
+        setCurrentIdx(0);
+        setIsPlaying(true);
+      } else {
+        setIsPlaying(false);
+      }
+    }, 100); // Brief pause to show 100% completion
   }, [currentIdx, demoProducts.length]);
 
   const handleTimeUpdate = () => {
@@ -88,7 +101,9 @@ export default function LinePreview({ settings, elements, demoProducts, previewV
       const currentTime = audioRef.current.currentTime;
       const duration = audioRef.current.duration;
       if (duration > 0) {
-        setProgress((currentTime / duration) * 100);
+        const progressPercent = (currentTime / duration) * 100;
+        // Ensure progress doesn't exceed 100% and handle edge cases
+        setProgress(Math.min(progressPercent, 100));
       }
     }
   };
