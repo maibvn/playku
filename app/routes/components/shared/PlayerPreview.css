@@ -40,6 +40,8 @@
 .playku-product-item {
   text-align: center;
   margin-bottom: 16px; /* Reduced margin since it's in fixed section */
+  width:150px; /* Fixed width to ensure consistent spacing */
+  flex-shrink: 0; /* Prevent items from shrinking */
 }
 
 .playku-product-img-wrap {
@@ -76,6 +78,17 @@
 .playku-product-title {
   margin-top: 8px;
   font-weight: bold;
+  font-size: 12px;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-height: 2.6em; /* Limit to approximately 2 lines */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Hover logic for play icon */
@@ -211,4 +224,47 @@
 
 .playku-player-close-section {
   flex-shrink: 0;
+}
+
+/* Spectrum transition effects */
+.playku-spectrum-container {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  overflow: hidden;
+}
+
+.playku-spectrum-line {
+  position: absolute;
+  top: 60%; /* Position at the bottom of the main spectrum area (60% down) */
+  left: 0;
+  transform: translateY(-50%);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.playku-spectrum-line.expanding {
+  opacity: 0;
+  transform: translateY(-50%) scaleY(10);
+}
+
+.playku-spectrum-analyzer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transform: scaleY(0.2);
+  transform-origin: center bottom;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.playku-spectrum-analyzer.visible {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.playku-spectrum-analyzer.collapsing {
+  opacity: 0;
+  transform: scaleY(0.2);
 }

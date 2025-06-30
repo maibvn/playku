@@ -9,12 +9,37 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerVisible, setPlayerVisible] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showSpectrum, setShowSpectrum] = useState(false);
   const visibleElements = elements?.filter(el => el.visible) || [];
 
   const autoLoopRef = useRef(settings.autoLoop);
   useEffect(() => {
     autoLoopRef.current = settings.autoLoop;
   }, [settings.autoLoop]);
+
+  // Handle spectrum transition when isPlaying changes
+  useEffect(() => {
+    if (isPlaying && !showSpectrum) {
+      // Starting to play - transition from line to spectrum
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowSpectrum(true);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 400); // Match faster CSS transition duration
+      }, 30);
+    } else if (!isPlaying && showSpectrum) {
+      // Stopping - transition from spectrum to line
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setShowSpectrum(false);
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 400); // Match faster CSS transition duration
+      }, 30);
+    }
+  }, [isPlaying, showSpectrum]);
 
   // Handle product click from grid
   const handleProductClick = (idx) => {
@@ -173,15 +198,33 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
 
         {/* Spectrum Section */}
         <div className="playku-player-waveform-section">
-          <SpectrumAnalyzer
-            audioUrl={currentProduct.audioUrl}
-            isPlaying={isPlaying}
-            barCount={settings.barCount}
-            barColor={settings.barColor}
-            height={60} // Increased height to accommodate spectrum + mirror
-            onEnded={handleEnded}
-            fallbackMode={false}
-          />
+          <div className="playku-spectrum-container">
+            {/* Static Line */}
+            <div 
+              className={`playku-spectrum-line ${isTransitioning && isPlaying ? 'expanding' : ''}`}
+              style={{
+                height: '4px',
+                backgroundColor: settings.barColor,
+                borderRadius: '2px',
+                width: '100%',
+                opacity: showSpectrum ? 0 : 0.6,
+                display: showSpectrum && !isTransitioning ? 'none' : 'block'
+              }}
+            />
+            
+            {/* Spectrum Analyzer */}
+            <div className={`playku-spectrum-analyzer ${showSpectrum ? 'visible' : ''} ${isTransitioning && !isPlaying ? 'collapsing' : ''}`}>
+              <SpectrumAnalyzer
+                audioUrl={currentProduct.audioUrl}
+                isPlaying={isPlaying && showSpectrum}
+                barCount={settings.barCount}
+                barColor={settings.barColor}
+                height={60}
+                onEnded={handleEnded}
+                fallbackMode={false}
+              />
+            </div>
+          </div>
         </div>
 
         {/* Close Button */}
