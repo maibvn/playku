@@ -198,7 +198,7 @@ export default function LinePreview({ settings, elements, demoProducts, previewV
         />
       </div>
 
-      {/* Sticky player (same style as WaveformPreview) */}
+      {/* Sticky player with new layout */}
       <div
         className={
           "playku-sticky-player" +
@@ -214,93 +214,98 @@ export default function LinePreview({ settings, elements, demoProducts, previewV
           height: settings.playerHeight,
         }}
       >
-        {visibleElements.map((el) => {
-          switch (el.key) {
-            case "image":
-              return settings.showImage ? (
-                <img
-                  key="preview-img"
-                  src={currentProduct.image}
-                  alt={currentProduct.title}
-                  className="playku-sticky-img"
-                  style={{
-                    height: settings.playerHeight - 16,
-                    maxHeight: settings.playerHeight - 16,
-                  }}
+        {/* Image Section */}
+        {settings.showImage && (
+          <div className="playku-player-image-section">
+            <img
+              src={currentProduct.image}
+              alt={currentProduct.title}
+              className="playku-sticky-img"
+              style={{
+                height: settings.playerHeight - 16,
+                maxHeight: settings.playerHeight - 16,
+              }}
+            />
+          </div>
+        )}
+
+        {/* Title and Controls Section */}
+        <div className="playku-player-info-section">
+          {/* Title */}
+          {settings.showTitle && (
+            <div className="playku-player-title">
+              {currentProduct.title}
+            </div>
+          )}
+          
+          {/* Controls */}
+          <div className="playku-player-controls">
+            <span
+              className="playku-sticky-btn"
+              onClick={handlePrevious}
+            >
+              <IconParser
+                iconKey={prevIconKey}
+                color={settings.iconColor}
+                size={16}
+              />
+            </span>
+            <span
+              className="playku-sticky-btn"
+              onClick={handlePlayPauseClick}
+            >
+              {isPlaying ? (
+                <IconParser
+                  iconKey={pauseIconKey}
+                  color={settings.iconColor}
+                  size={24}
                 />
-              ) : null;
-            case "title":
-              return settings.showTitle ? (
-                <span key="preview-title" className="playku-sticky-title">
-                  {currentProduct.title}
-                </span>
-              ) : null;
-            case "controls":
-              return (
-                <span key="preview-controls" className="playku-sticky-controls">
-                  <span
-                    className="playku-sticky-btn"
-                    onClick={handlePrevious}
-                  >
-                    <IconParser
-                      iconKey={prevIconKey}
-                      color={settings.iconColor}
-                      size={20}
-                    />
-                  </span>
-                  <span
-                    className="playku-sticky-btn"
-                    onClick={handlePlayPauseClick}
-                  >
-                    {isPlaying ? (
-                      <IconParser
-                        iconKey={pauseIconKey}
-                        color={settings.iconColor}
-                        size={32}
-                      />
-                    ) : (
-                      <IconParser
-                        iconKey={playIconKey}
-                        color={settings.iconColor}
-                        size={32}
-                      />
-                    )}
-                  </span>
-                  <span
-                    className="playku-sticky-btn"
-                    onClick={handleNext}
-                  >
-                    <IconParser
-                      iconKey={nextIconKey}
-                      color={settings.iconColor}
-                      size={20}
-                    />
-                  </span>
-                </span>
-              );
-            default:
-              return null;
-          }
-        })}
-        <div 
-          className="playku-sticky-waveform" 
-          style={progressBarStyle}
-          onClick={handleProgressClick}
-        >
-          <div style={progressFillStyle}></div>
+              ) : (
+                <IconParser
+                  iconKey={playIconKey}
+                  color={settings.iconColor}
+                  size={24}
+                />
+              )}
+            </span>
+            <span
+              className="playku-sticky-btn"
+              onClick={handleNext}
+            >
+              <IconParser
+                iconKey={nextIconKey}
+                color={settings.iconColor}
+                size={16}
+              />
+            </span>
+          </div>
         </div>
-        <span
-          key="preview-close"
-          className="playku-sticky-close"
-          title="This will close the player"
-          onClick={handleClosePlayer}
-        >
-          <IconParser
-            iconKey={closeIconKey}
-            color={settings.iconColor}
-            size={20}
-          />
-        </span>
+
+        {/* Line Progress Section */}
+        <div className="playku-player-waveform-section">
+          <div 
+            className="playku-sticky-waveform" 
+            style={progressBarStyle}
+            onClick={handleProgressClick}
+          >
+            <div style={progressFillStyle}></div>
+          </div>
+        </div>
+
+        {/* Close Button */}
+        <div className="playku-player-close-section">
+          <span
+            className="playku-sticky-close"
+            title="This will close the player"
+            onClick={handleClosePlayer}
+          >
+            <IconParser
+              iconKey={closeIconKey}
+              color={settings.iconColor}
+              size={20}
+            />
+          </span>
+        </div>
       </div>
     </div>
   );

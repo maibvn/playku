@@ -94,7 +94,7 @@
   display: flex;
   align-items: center;
   padding: 16px 24px;
-  gap: 16px;
+  gap: 0; /* Remove default gap since we're using custom margins */
   box-shadow: 0 -2px 16px #0003;
   pointer-events: auto; /* Enable clicks on the player */
 }
@@ -169,4 +169,46 @@
 /* Add padding only when preview is visible */
 .playku-page-content.preview-visible {
   padding-bottom: 300px; /* Increased from 200px for better UI spacing */
+}
+
+/* New sticky player layout styles */
+.playku-player-image-section {
+  flex-shrink: 0;
+  margin-right: 16px;
+}
+
+.playku-player-info-section {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-right: 16px;
+  min-width: 200px;
+}
+
+.playku-player-title {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  color: inherit;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.playku-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.playku-player-waveform-section {
+  flex: 1;
+  margin-right: 16px;
+  min-width: 0; /* Allow flex item to shrink */
+}
+
+.playku-player-close-section {
+  flex-shrink: 0;
 }
