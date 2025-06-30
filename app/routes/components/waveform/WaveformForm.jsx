@@ -7,7 +7,9 @@ import {
   Select,
   Text,
   InlineStack,
+  Icon,
 } from "@shopify/polaris";
+import { ViewIcon, HideIcon } from "@shopify/polaris-icons";
 import { useState, useEffect } from "react";
 import IconSelect from "../shared/IconSelect";
 
@@ -193,9 +195,11 @@ export default function WaveformForm({
           Sticky Player 
         </Text>
         <Button
-          variant={previewVisible ? "primary" : "secondary"}
+         variant="primary"
+          tone="success"
           onClick={onTogglePreview}
           size="medium"
+          icon={<Icon source={previewVisible ? HideIcon : ViewIcon} />}
         >
           {previewVisible ? "Hide Preview" : "Show Preview"}
         </Button>

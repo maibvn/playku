@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Card, Text, BlockStack } from "@shopify/polaris";
 import ProductGrid from "../shared/ProductGrid";
 import SpectrumAnalyzer from "../shared/SpectrumAnalyzer";
@@ -10,6 +10,11 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerVisible, setPlayerVisible] = useState(true);
   const visibleElements = elements?.filter(el => el.visible) || [];
+
+  const autoLoopRef = useRef(settings.autoLoop);
+  useEffect(() => {
+    autoLoopRef.current = settings.autoLoop;
+  }, [settings.autoLoop]);
 
   // Handle product click from grid
   const handleProductClick = (idx) => {
@@ -28,10 +33,38 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
     // Disabled for preview - no action taken
   };
 
-  // Handle audio ended
-  const handleEnded = () => {
-    setIsPlaying(false);
+  // Handle previous track
+  const handlePrevious = () => {
+    if (currentIdx > 0) {
+      setCurrentIdx(currentIdx - 1);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(demoProducts.length - 1);
+    }
+    // If autoLoop is off and we're at first track, do nothing
   };
+
+  // Handle next track
+  const handleNext = () => {
+    if (currentIdx < demoProducts.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(0);
+    }
+    // If autoLoop is off and we're at last track, do nothing
+  };
+
+  // Handle audio ended with autoLoop logic
+  const handleEnded = useCallback(() => {
+    if (currentIdx < demoProducts.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+      setIsPlaying(true);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(false);
+    }
+  }, [currentIdx, demoProducts.length]);
 
   const currentProduct = demoProducts[currentIdx];
 
@@ -97,12 +130,7 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
                 <span key="preview-controls" className="playku-sticky-controls">
                   <span
                     className="playku-sticky-btn"
-                    onClick={() =>
-                      setCurrentIdx(
-                        (currentIdx - 1 + demoProducts.length) %
-                          demoProducts.length
-                      )
-                    }
+                    onClick={handlePrevious}
                   >
                     <IconParser
                       iconKey={prevIconKey}
@@ -130,9 +158,7 @@ export default function SpectrumPreview({ settings, elements, demoProducts, prev
                   </span>
                   <span
                     className="playku-sticky-btn"
-                    onClick={() =>
-                      setCurrentIdx((currentIdx + 1) % demoProducts.length)
-                    }
+                    onClick={handleNext}
                   >
                     <IconParser
                       iconKey={nextIconKey}

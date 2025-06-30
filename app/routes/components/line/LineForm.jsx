@@ -7,7 +7,9 @@ import {
   Select,
   Text,
   InlineStack,
+  Icon,
 } from "@shopify/polaris";
+import { ViewIcon, HideIcon } from "@shopify/polaris-icons";
 import { useState } from "react";
 import IconSelect from "../shared/IconSelect";
 
@@ -178,13 +180,15 @@ export default function LineForm({
   return (
     <BlockStack gap="300">
       <InlineStack align="space-between">
-        <Text variant="headingMd" as="h2">
-          Line Player Settings
+         <Text variant="headingLg" as="h2">
+          Sticky Player 
         </Text>
         <Button
-          variant={previewVisible ? "primary" : "secondary"}
+          variant="primary"
+          tone="success"
           onClick={onTogglePreview}
           size="medium"
+          icon={<Icon source={previewVisible ? HideIcon : ViewIcon} />}
         >
           {previewVisible ? "Hide Preview" : "Show Preview"}
         </Button>
@@ -197,21 +201,45 @@ export default function LineForm({
             value={playerHeightOption}
             onChange={handlePlayerHeightChange}
           />
-          <TextField
+            <TextField
+              label="Opacity"
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={String(settings.playerBgOpacity ?? 1)}
+              onChange={handleSettingChange("playerBgOpacity")}
+              autoComplete="off"
+            />
+            <IconSelect
+  label="Next/Prev Icons"
+  type="prevnext"
+  value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+  onChange={handleNextPrevIconsChange}
+/>
+          <IconSelect
+            label="Play/Pause Icons"
+            type="playpause"
+            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+            onChange={handlePlayPauseIconsChange}
+          />
+          <IconSelect
+            label="Close Icon"
+            type="close"
+            value={settings.closeIcon.replace(/bi-/g, '')}
+            onChange={handleCloseIconChange}
+          />
+
+         
+        </FormLayout.Group>
+        
+        {/* Line-specific fields */}
+        <FormLayout.Group condensed>
+           <TextField
             label="Background Color"
             type="color"
             value={settings.playerBgColor}
             onChange={handleSettingChange("playerBgColor")}
-            autoComplete="off"
-          />
-          <TextField
-            label="Opacity"
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            value={String(settings.playerBgOpacity ?? 1)}
-            onChange={handleSettingChange("playerBgOpacity")}
             autoComplete="off"
           />
           <TextField
@@ -221,10 +249,7 @@ export default function LineForm({
             onChange={handleSettingChange("iconColor")}
             autoComplete="off"
           />
-        </FormLayout.Group>
-        
-        {/* Line-specific fields */}
-        <FormLayout.Group condensed>
+
           <TextField
             label="Progress Color"
             type="color"
@@ -249,13 +274,36 @@ export default function LineForm({
             step={1}
           />
         </FormLayout.Group>
-        
+
         <FormLayout.Group condensed>
+          <Checkbox
+            label="Auto Loop"
+            checked={settings.autoLoop}
+            onChange={handleCheckbox("autoLoop")}
+          />
+          <Checkbox
+            label="Icon On Product"
+            checked={settings.showPlayIconOnImage}
+            onChange={handleCheckbox("showPlayIconOnImage")}
+          />
+          <Checkbox
+            label="Show Title"
+            checked={settings.showTitle}
+            onChange={handleCheckbox("showTitle")}
+          />
+          <Checkbox
+            label="Show Image"
+            checked={settings.showImage}
+            onChange={handleCheckbox("showImage")}
+          />
+        </FormLayout.Group>
+        
           <Text variant="headingLg" as="h2">
         Icon on Product 
       </Text>
+        <FormLayout.Group condensed>
           <IconSelect
-            label="Icon On Product"
+            label="Icon"
             type="icononproduct"
             value={settings.iconOnProduct.replace(/bi-/g, '').replace(/, /g, ' ')}
             onChange={handleIconOnProductChange}
@@ -292,47 +340,9 @@ export default function LineForm({
             autoComplete="off"
           />
 
-          <IconSelect
-            label="Play/Pause Icons"
-            type="playpause"
-            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handlePlayPauseIconsChange}
-          />
-          <IconSelect
-            label="Next/Prev Icons"
-            type="prevnext"
-            value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handleNextPrevIconsChange}
-          />
-          <IconSelect
-            label="Close Icon"
-            type="close"
-            value={settings.closeIcon.replace(/bi-/g, '')}
-            onChange={handleCloseIconChange}
-          />
+
         </FormLayout.Group>
-        <FormLayout.Group condensed>
-          <Checkbox
-            label="Auto Loop"
-            checked={settings.autoLoop}
-            onChange={handleCheckbox("autoLoop")}
-          />
-          <Checkbox
-            label="Icon On Product"
-            checked={settings.showPlayIconOnImage}
-            onChange={handleCheckbox("showPlayIconOnImage")}
-          />
-          <Checkbox
-            label="Show Title"
-            checked={settings.showTitle}
-            onChange={handleCheckbox("showTitle")}
-          />
-          <Checkbox
-            label="Show Image"
-            checked={settings.showImage}
-            onChange={handleCheckbox("showImage")}
-          />
-        </FormLayout.Group>
+        
       </FormLayout>
       <Button onClick={handleSubmit} variant="primary">
         Save Line Settings

@@ -21,7 +21,27 @@ function WaveformPreview({ settings, elements, demoProducts, previewVisible = tr
   const closeIconKey = settings.closeIcon;
 
   const visibleElements = elements.filter((el) => el.visible);
-  // Handle auto-play next
+  // Handle previous track
+  const handlePrevious = () => {
+    if (currentIdx > 0) {
+      setCurrentIdx(currentIdx - 1);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(demoProducts.length - 1);
+    }
+    // If autoLoop is off and we're at first track, do nothing
+  };
+
+  // Handle next track
+  const handleNext = () => {
+    if (currentIdx < demoProducts.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+    } else if (autoLoopRef.current) {
+      setCurrentIdx(0);
+    }
+    // If autoLoop is off and we're at last track, do nothing
+  };
+
+  // Handle auto-play next when audio ends
   const handleEnded = useCallback(() => {
     if (currentIdx < demoProducts.length - 1) {
       setCurrentIdx(currentIdx + 1);
@@ -123,12 +143,7 @@ function WaveformPreview({ settings, elements, demoProducts, previewVisible = tr
               return (
                 <span key="preview-controls" className="playku-sticky-controls">                  <span
                     className="playku-sticky-btn"
-                    onClick={() =>
-                      setCurrentIdx(
-                        (currentIdx - 1 + demoProducts.length) %
-                          demoProducts.length
-                      )
-                    }
+                    onClick={handlePrevious}
                   >
                     <IconParser
                       iconKey={prevIconKey}
@@ -155,9 +170,7 @@ function WaveformPreview({ settings, elements, demoProducts, previewVisible = tr
                     )}
                   </span>                  <span
                     className="playku-sticky-btn"
-                    onClick={() =>
-                      setCurrentIdx((currentIdx + 1) % demoProducts.length)
-                    }
+                    onClick={handleNext}
                   >
                     <IconParser
                       iconKey={nextIconKey}
