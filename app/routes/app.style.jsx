@@ -8,15 +8,14 @@ import {
   TextContainer,
   Button,
   InlineStack,
-  Select,
-  Icon,
 } from "@shopify/polaris";
-import { ViewIcon, HideIcon, SaveIcon } from "@shopify/polaris-icons";
+import { ViewIcon, HideIcon, CheckIcon } from "@shopify/polaris-icons";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState, useCallback } from "react";
 import { WaveformForm, WaveformPreview } from "./components/waveform";
 import { SpectrumForm, SpectrumPreview } from "./components/spectrum";
 import { LineForm, LinePreview } from "./components/line";
+import StyleSelect from "./components/shared/StyleSelect";
 
 // Demo products used across all player styles
 const DEMO_PRODUCTS = [
@@ -77,12 +76,6 @@ const LINE_SETTINGS = {
   height: 4,
 };
 
-const PLAYER_STYLES = [
-  { label: 'Waveform Player', value: 'waveform' },
-  { label: 'Spectrum Player', value: 'spectrum' },
-  { label: 'Line Player', value: 'line' },
-];
-
 const DEFAULT_ELEMENTS = [
   { key: "image", label: "Product Image", visible: true },
   { key: "title", label: "Title", visible: true },
@@ -137,11 +130,13 @@ export default function PlayerStyleSettingsPage() {
   // Add state to track if settings have changed
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const currentPlayerStyle = PLAYER_STYLES[selectedStyleTab].value;
+  // Style options for mapping
+  const styleOptions = ['waveform', 'spectrum', 'line'];
+  const currentPlayerStyle = styleOptions[selectedStyleTab];
 
   // Handle style dropdown change
   const handleStyleChange = useCallback((selectedValue) => {
-    const newTabIndex = PLAYER_STYLES.findIndex(style => style.value === selectedValue);
+    const newTabIndex = styleOptions.findIndex(style => style === selectedValue);
     if (newTabIndex !== -1) {
       setSelectedStyleTab(newTabIndex);
     }
@@ -367,30 +362,27 @@ export default function PlayerStyleSettingsPage() {
             <Card>
               <BlockStack gap="500">
                 {/* Style selector and action buttons */}
-                <InlineStack gap="300" align="space-between">
-                  <Select
-                    label=""
-                    options={PLAYER_STYLES}
+                <InlineStack gap="300" align="end">
+                  <StyleSelect
+                    label="Player Style"
                     value={currentPlayerStyle}
                     onChange={handleStyleChange}
                   />
-                  <InlineStack gap="300" align="end">
-                    <Button
-                      onClick={togglePreview}
-                      variant={previewVisible ? "primary" : "secondary"}
-                      icon={previewVisible ? HideIcon : ViewIcon}
-                    >
-                      {previewVisible ? "Hide Preview" : "Show Preview"}
-                    </Button>
-                    <Button
-                      variant="primary"
-                      onClick={handleSaveSettings}
-                      disabled={!hasUnsavedChanges}
-                      icon={SaveIcon}
-                    >
-                      Save Settings
-                    </Button>
-                  </InlineStack>
+                  <Button
+                    onClick={togglePreview}
+                    variant={previewVisible ? "primary" : "secondary"}
+                    icon={previewVisible ? HideIcon : ViewIcon}
+                  >
+                    {previewVisible ? "Hide Preview" : "Show Preview"}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveSettings}
+                    disabled={!hasUnsavedChanges}
+                    icon={CheckIcon}
+                  >
+                    Save Settings
+                  </Button>
                 </InlineStack>
                 
                 {renderCurrentForm()}
