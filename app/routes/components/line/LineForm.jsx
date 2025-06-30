@@ -1,15 +1,11 @@
 import {
   BlockStack,
-  Button,
   Checkbox,
   TextField,
   FormLayout,
   Select,
   Text,
-  InlineStack,
-  Icon,
 } from "@shopify/polaris";
-import { ViewIcon, HideIcon } from "@shopify/polaris-icons";
 import { useState } from "react";
 import IconSelect from "../shared/IconSelect";
 
@@ -47,10 +43,7 @@ const ICON_POSITION_OPTIONS = [
 
 export default function LineForm({ 
   initialSettings, 
-  onSubmit, 
-  onSettingsChange, 
-  previewVisible = true, 
-  onTogglePreview 
+  onSettingsChange
 }) {
   const [settings, setSettings] = useState(initialSettings);
 
@@ -106,13 +99,6 @@ export default function LineForm({
     Object.entries(PLAYER_HEIGHT_VALUES).find(
       ([, v]) => v === settings.playerHeight
     )?.[0] || "medium";
-
-  const handleSubmit = () => {
-    if (onSubmit) {
-      // Submit all settings (general + style-specific are all in settings object)
-      onSubmit(settings);
-    }
-  };
 
   const handleIconOnProductChange = (val) => {
     const newSettings = {
@@ -177,23 +163,12 @@ export default function LineForm({
       onSettingsChange(newSettings);
     }
   };
-
   return (
     <BlockStack gap="300">
-      <InlineStack align="space-between">
-         <Text variant="headingLg" as="h2">
+      <Text variant="headingMd" as="h2" tone="success">
           Sticky Player 
         </Text>
-        <Button
-          variant="primary"
-          tone="success"
-          onClick={onTogglePreview}
-          size="medium"
-          icon={<Icon source={previewVisible ? HideIcon : ViewIcon} />}
-        >
-          {previewVisible ? "Hide Preview" : "Show Preview"}
-        </Button>
-      </InlineStack>
+
       <FormLayout>
         <FormLayout.Group condensed>
           <Select
@@ -299,7 +274,7 @@ export default function LineForm({
           />
         </FormLayout.Group>
         
-          <Text variant="headingLg" as="h2">
+          <Text variant="headingMd" as="h2" tone="success">
         Icon on Product 
       </Text>
         <FormLayout.Group condensed>
@@ -345,9 +320,6 @@ export default function LineForm({
         </FormLayout.Group>
         
       </FormLayout>
-      <Button onClick={handleSubmit} variant="primary">
-        Save Line Settings
-      </Button>
     </BlockStack>
   );
 }

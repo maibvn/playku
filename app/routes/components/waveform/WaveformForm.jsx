@@ -1,16 +1,12 @@
 import {
   BlockStack,
-  Button,
   Checkbox,
   TextField,
   FormLayout,
   Select,
   Text,
-  InlineStack,
-  Icon,
 } from "@shopify/polaris";
-import { ViewIcon, HideIcon } from "@shopify/polaris-icons";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import IconSelect from "../shared/IconSelect";
 
 const PLAYER_HEIGHT_OPTIONS = [
@@ -47,23 +43,9 @@ const ICON_POSITION_OPTIONS = [
 
 export default function WaveformForm({ 
   initialSettings, 
-  initialStyleSettings,
-  onSubmit, 
-  onSettingsChange,
-  onStyleSettingsChange,
-  previewVisible = true,
-  onTogglePreview
+  onSettingsChange
 }) {
   const [settings, setSettings] = useState(initialSettings);
-  const [styleSettings, setStyleSettings] = useState(initialStyleSettings);
-
-  // Update styleSettings when initialStyleSettings changes
-  useEffect(() => {
-    setStyleSettings(initialStyleSettings);
-    if (onStyleSettingsChange) {
-      onStyleSettingsChange(initialStyleSettings);
-    }
-  }, [initialStyleSettings, onStyleSettingsChange]);
 
   // --- Handle settings change ---
   const handleSettingChange = (field) => (value) => {
@@ -117,13 +99,6 @@ export default function WaveformForm({
     Object.entries(PLAYER_HEIGHT_VALUES).find(
       ([, v]) => v === settings.playerHeight
     )?.[0] || "medium";
-
-  const handleSubmit = () => {
-    if (onSubmit) {
-      // Submit all settings (general + style-specific are all in settings object)
-      onSubmit(settings);
-    }
-  };
 
   const handleIconOnProductChange = (val) => {
     const newSettings = {
@@ -191,20 +166,10 @@ export default function WaveformForm({
 
   return (
     <BlockStack gap="300">
-      <InlineStack align="space-between">
-        <Text variant="headingLg" as="h2">
+        <Text variant="headingMd" as="h2" tone="success">
           Sticky Player 
         </Text>
-        <Button
-         variant="primary"
-          tone="success"
-          onClick={onTogglePreview}
-          size="medium"
-          icon={<Icon source={previewVisible ? HideIcon : ViewIcon} />}
-        >
-          {previewVisible ? "Hide Preview" : "Show Preview"}
-        </Button>
-      </InlineStack>
+        
       <FormLayout>
         <FormLayout.Group condensed>
           <Select
@@ -308,7 +273,7 @@ export default function WaveformForm({
           />
         </FormLayout.Group>
         
-        <Text variant="headingLg" as="h2">
+        <Text variant="headingMd" as="h2" tone="success">
         Icon on Product 
       </Text>
         <FormLayout.Group condensed>
@@ -355,9 +320,6 @@ export default function WaveformForm({
         </FormLayout.Group>
         
       </FormLayout>
-      <Button variant="primary" onClick={handleSubmit}>
-        Save Waveform Settings
-      </Button>
     </BlockStack>
   );
 }

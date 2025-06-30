@@ -4,10 +4,14 @@ import {
   Page,
   Text,
   BlockStack,
-  Tabs,
   Modal,
   TextContainer,
+  Button,
+  InlineStack,
+  Select,
+  Icon,
 } from "@shopify/polaris";
+import { ViewIcon, HideIcon, SaveIcon } from "@shopify/polaris-icons";
 import { TitleBar } from "@shopify/app-bridge-react";
 import { useState, useCallback } from "react";
 import { WaveformForm, WaveformPreview } from "./components/waveform";
@@ -74,9 +78,9 @@ const LINE_SETTINGS = {
 };
 
 const PLAYER_STYLES = [
-  { id: 'waveform', content: 'Waveform' },
-  { id: 'spectrum', content: 'Spectrum' },
-  { id: 'line', content: 'Line' },
+  { label: 'Waveform Player', value: 'waveform' },
+  { label: 'Spectrum Player', value: 'spectrum' },
+  { label: 'Line Player', value: 'line' },
 ];
 
 const DEFAULT_ELEMENTS = [
@@ -129,8 +133,19 @@ export default function PlayerStyleSettingsPage() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [pendingSaveData, setPendingSaveData] = useState(null);
   const [currentPlayerType, setCurrentPlayerType] = useState('');
+  
+  // Add state to track if settings have changed
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const currentPlayerStyle = PLAYER_STYLES[selectedStyleTab].id;
+  const currentPlayerStyle = PLAYER_STYLES[selectedStyleTab].value;
+
+  // Handle style dropdown change
+  const handleStyleChange = useCallback((selectedValue) => {
+    const newTabIndex = PLAYER_STYLES.findIndex(style => style.value === selectedValue);
+    if (newTabIndex !== -1) {
+      setSelectedStyleTab(newTabIndex);
+    }
+  }, []);
 
   // Helper function to format settings data according to Prisma schema
   const formatSettingsForDatabase = (settingsData, playerStyle) => {
@@ -199,13 +214,55 @@ export default function PlayerStyleSettingsPage() {
     };
   };
 
-  const handleStyleTabChange = useCallback((selectedTabIndex) => {
-    setSelectedStyleTab(selectedTabIndex);
-  }, []);
-
   const togglePreview = useCallback(() => {
     setPreviewVisible(prev => !prev);
   }, []);
+
+  // Centralized handlers for form submissions
+  const handleSaveSettings = () => {
+    let settingsData;
+    let playerType;
+
+    switch (selectedStyleTab) {
+      case 0:
+        settingsData = waveformSettings;
+        playerType = 'waveform';
+        break;
+      case 1:
+        settingsData = spectrumSettings;
+        playerType = 'spectrum';
+        break;
+      case 2:
+        settingsData = lineSettings;
+        playerType = 'line';
+        break;
+      default:
+        return;
+    }
+
+    const formattedData = formatSettingsForDatabase(settingsData, playerType);
+    
+    // Show confirmation modal
+    setPendingSaveData(formattedData);
+    setCurrentPlayerType(playerType.charAt(0).toUpperCase() + playerType.slice(1));
+    setShowSaveModal(true);
+  };
+
+  // Updated form change handlers to track unsaved changes
+  const handleWaveformChange = (newSettings) => {
+    setWaveformSettings(newSettings);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleSpectrumChange = (newSettings) => {
+    setSpectrumSettings(newSettings);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleLineChange = (newSettings) => {
+    setLineSettings(newSettings);
+    setHasUnsavedChanges(true);
+  };
 
   // Centralized database update function
   const saveSettingsToDatabase = async (formattedData, playerType) => {
@@ -251,6 +308,7 @@ export default function PlayerStyleSettingsPage() {
         setShowSaveModal(false);
         setPendingSaveData(null);
         setCurrentPlayerType('');
+        setHasUnsavedChanges(false);
         
       } catch (error) {
         // Error already logged in saveSettingsToDatabase
@@ -259,69 +317,34 @@ export default function PlayerStyleSettingsPage() {
     }
   };
 
-  const handleWaveformSubmit = (settingsData) => {
-    const formattedData = formatSettingsForDatabase(settingsData, 'waveform');
-    
-    // Show confirmation modal
-    setPendingSaveData(formattedData);
-    setCurrentPlayerType('Waveform');
-    setShowSaveModal(true);
-  };
-
-  const handleSpectrumSubmit = (settingsData) => {
-    const formattedData = formatSettingsForDatabase(settingsData, 'spectrum');
-    
-    // Show confirmation modal
-    setPendingSaveData(formattedData);
-    setCurrentPlayerType('Spectrum');
-    setShowSaveModal(true);
-  };
-
-  const handleLineSubmit = (settingsData) => {
-    const formattedData = formatSettingsForDatabase(settingsData, 'line');
-    
-    // Show confirmation modal
-    setPendingSaveData(formattedData);
-    setCurrentPlayerType('Line');
-    setShowSaveModal(true);
-  };
-
   const renderCurrentForm = () => {
     switch (selectedStyleTab) {
       case 0:
         return (
           <WaveformForm
             initialSettings={WAVEFORM_SETTINGS}
-            onSubmit={handleWaveformSubmit}
-            onSettingsChange={setWaveformSettings}
-            previewVisible={previewVisible}
-            onTogglePreview={togglePreview}
+            onSettingsChange={handleWaveformChange}
           />
         );
       case 1:
         return (
           <SpectrumForm
             initialSettings={SPECTRUM_SETTINGS}
-            onSubmit={handleSpectrumSubmit}
-            onSettingsChange={setSpectrumSettings}
-            previewVisible={previewVisible}
-            onTogglePreview={togglePreview}
+            onSettingsChange={handleSpectrumChange}
           />
         );
       case 2:
         return (
           <LineForm
             initialSettings={LINE_SETTINGS}
-            onSubmit={handleLineSubmit}
-            onSettingsChange={setLineSettings}
-            previewVisible={previewVisible}
-            onTogglePreview={togglePreview}
+            onSettingsChange={handleLineChange}
           />
         );
       default:
         return null;
     }
   };
+
   const renderCurrentPreview = () => {
     switch (selectedStyleTab) {
       case 0:
@@ -333,7 +356,9 @@ export default function PlayerStyleSettingsPage() {
       default:
         return null;
     }
-  };return (
+  };
+
+  return (
     <Page fullWidth>
       <TitleBar title="Audio Player Designer" />
       <Layout>
@@ -341,12 +366,32 @@ export default function PlayerStyleSettingsPage() {
           <div className={`playku-page-content ${previewVisible ? 'preview-visible' : ''}`}>
             <Card>
               <BlockStack gap="500">
-                <Tabs
-                  tabs={PLAYER_STYLES}
-                  selected={selectedStyleTab}
-                  onSelect={handleStyleTabChange}
-                  fitted
-                />
+                {/* Style selector and action buttons */}
+                <InlineStack gap="300" align="space-between">
+                  <Select
+                    label=""
+                    options={PLAYER_STYLES}
+                    value={currentPlayerStyle}
+                    onChange={handleStyleChange}
+                  />
+                  <InlineStack gap="300" align="end">
+                    <Button
+                      onClick={togglePreview}
+                      variant={previewVisible ? "primary" : "secondary"}
+                      icon={previewVisible ? HideIcon : ViewIcon}
+                    >
+                      {previewVisible ? "Hide Preview" : "Show Preview"}
+                    </Button>
+                    <Button
+                      variant="primary"
+                      onClick={handleSaveSettings}
+                      disabled={!hasUnsavedChanges}
+                      icon={SaveIcon}
+                    >
+                      Save Settings
+                    </Button>
+                  </InlineStack>
+                </InlineStack>
                 
                 {renderCurrentForm()}
                 
