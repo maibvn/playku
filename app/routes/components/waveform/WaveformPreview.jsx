@@ -4,7 +4,7 @@ import IconParser from "../shared/IconParser";
 import ProductGrid from "../shared/ProductGrid";
 import "../shared/PlayerPreview.css";
 
-function WaveformPreview({ settings, elements, demoProducts }) {
+function WaveformPreview({ settings, elements, demoProducts, previewVisible = true }) {
 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -64,22 +64,23 @@ function WaveformPreview({ settings, elements, demoProducts }) {
   }, [isPlaying]);
 
   const handleClosePlayer = () => {
-    setPlayerVisible(false); // Hide player with slide down
-    setIsPlaying(false);
+    // Disabled for preview - no action taken
   };
 
   const currentProduct = demoProducts[currentIdx];
   return (
-    <div>
+    <div className={`playku-fixed-section ${previewVisible ? 'playku-preview-visible' : 'playku-preview-hidden'}`}>
       {/* Product images grid */}
-      <ProductGrid
-        demoProducts={demoProducts}
-        settings={settings}
-        currentIdx={currentIdx}
-        isPlaying={isPlaying}
-        onProductClick={handleProductClick}
-        onPlayPauseClick={handlePlayPauseFromGrid}
-      />
+      <div className="playku-product-grid-container">
+        <ProductGrid
+          demoProducts={demoProducts}
+          settings={settings}
+          currentIdx={currentIdx}
+          isPlaying={isPlaying}
+          onProductClick={handleProductClick}
+          onPlayPauseClick={handlePlayPauseFromGrid}
+        />
+      </div>
 
       {/* Sticky player (one only) */}
       <div

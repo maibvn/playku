@@ -92,11 +92,16 @@ export default function PlayerStyleSettingsPage() {
   const [spectrumSettings, setSpectrumSettings] = useState(SPECTRUM_SETTINGS);
   const [lineSettings, setLineSettings] = useState(LINE_SETTINGS);
   const [elements, setElements] = useState(DEFAULT_ELEMENTS);
+  const [previewVisible, setPreviewVisible] = useState(true);
 
   const currentPlayerStyle = PLAYER_STYLES[selectedStyleTab].id;
 
   const handleStyleTabChange = useCallback((selectedTabIndex) => {
     setSelectedStyleTab(selectedTabIndex);
+  }, []);
+
+  const togglePreview = useCallback(() => {
+    setPreviewVisible(prev => !prev);
   }, []);
 
   const handleWaveformSubmit = (settingsData) => {
@@ -146,6 +151,8 @@ export default function PlayerStyleSettingsPage() {
             initialSettings={WAVEFORM_SETTINGS}
             onSubmit={handleWaveformSubmit}
             onSettingsChange={setWaveformSettings}
+            previewVisible={previewVisible}
+            onTogglePreview={togglePreview}
           />
         );
       case 1:
@@ -154,6 +161,8 @@ export default function PlayerStyleSettingsPage() {
             initialSettings={SPECTRUM_SETTINGS}
             onSubmit={handleSpectrumSubmit}
             onSettingsChange={setSpectrumSettings}
+            previewVisible={previewVisible}
+            onTogglePreview={togglePreview}
           />
         );
       case 2:
@@ -162,6 +171,8 @@ export default function PlayerStyleSettingsPage() {
             initialSettings={LINE_SETTINGS}
             onSubmit={handleLineSubmit}
             onSettingsChange={setLineSettings}
+            previewVisible={previewVisible}
+            onTogglePreview={togglePreview}
           />
         );
       default:
@@ -171,38 +182,35 @@ export default function PlayerStyleSettingsPage() {
   const renderCurrentPreview = () => {
     switch (selectedStyleTab) {
       case 0:
-        return <WaveformPreview settings={waveformSettings} elements={elements} demoProducts={DEMO_PRODUCTS} />;
+        return <WaveformPreview settings={waveformSettings} elements={elements} demoProducts={DEMO_PRODUCTS} previewVisible={previewVisible} />;
       case 1:
-        return <SpectrumPreview settings={spectrumSettings} elements={elements} demoProducts={DEMO_PRODUCTS} />;
+        return <SpectrumPreview settings={spectrumSettings} elements={elements} demoProducts={DEMO_PRODUCTS} previewVisible={previewVisible} />;
       case 2:
-        return <LinePreview settings={lineSettings} elements={elements} demoProducts={DEMO_PRODUCTS} />;
+        return <LinePreview settings={lineSettings} elements={elements} demoProducts={DEMO_PRODUCTS} previewVisible={previewVisible} />;
       default:
         return null;
     }
   };return (
-    <Page>
+    <Page fullWidth>
       <TitleBar title="Audio Player Designer" />
       <Layout>
         <Layout.Section>
-          <Card>
-            <BlockStack gap="500">
-              <Tabs
-                tabs={PLAYER_STYLES}
-                selected={selectedStyleTab}
-                onSelect={handleStyleTabChange}
-                fitted
-              />
-              
-              {renderCurrentForm()}
-              
-              <BlockStack gap="300">
-                <Text variant="headingMd" as="h2">
-                  Preview
-                </Text>
+          <div className={`playku-page-content ${previewVisible ? 'preview-visible' : ''}`}>
+            <Card>
+              <BlockStack gap="500">
+                <Tabs
+                  tabs={PLAYER_STYLES}
+                  selected={selectedStyleTab}
+                  onSelect={handleStyleTabChange}
+                  fitted
+                />
+                
+                {renderCurrentForm()}
+                
                 {renderCurrentPreview()}
               </BlockStack>
-            </BlockStack>
-          </Card>
+            </Card>
+          </div>
         </Layout.Section>
       </Layout>
     </Page>

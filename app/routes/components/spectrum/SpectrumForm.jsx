@@ -6,6 +6,7 @@ import {
   FormLayout,
   Select,
   Text,
+  InlineStack,
 } from "@shopify/polaris";
 import { useState } from "react";
 import IconSelect from "../shared/IconSelect";
@@ -42,7 +43,13 @@ const ICON_POSITION_OPTIONS = [
   { label: "Bottom Right", value: "bottom-right" },
 ];
 
-export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChange }) {
+export default function SpectrumForm({ 
+  initialSettings, 
+  onSubmit, 
+  onSettingsChange, 
+  previewVisible = true, 
+  onTogglePreview 
+}) {
   const [settings, setSettings] = useState(initialSettings);
 
   // --- Handle settings change ---
@@ -170,9 +177,18 @@ export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChan
 
   return (
     <BlockStack gap="300">
-      <Text variant="headingMd" as="h2">
-        Spectrum Player Settings
-      </Text>
+      <InlineStack align="space-between">
+        <Text variant="headingLg" as="h2">
+          Sticky Player 
+        </Text>
+        <Button
+          variant={previewVisible ? "primary" : "secondary"}
+          onClick={onTogglePreview}
+          size="medium"
+        >
+          {previewVisible ? "Hide Preview" : "Show Preview"}
+        </Button>
+      </InlineStack>
       <FormLayout>
         <FormLayout.Group condensed>
           <Select
@@ -181,21 +197,45 @@ export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChan
             value={playerHeightOption}
             onChange={handlePlayerHeightChange}
           />
+            <TextField
+              label="Opacity"
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              value={String(settings.playerBgOpacity ?? 1)}
+              onChange={handleSettingChange("playerBgOpacity")}
+              autoComplete="off"
+            />
+
+            <IconSelect
+  label="Next/Prev Icons"
+  type="prevnext"
+  value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+  onChange={handleNextPrevIconsChange}
+/>
+          <IconSelect
+            label="Play/Pause Icons"
+            type="playpause"
+            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+            onChange={handlePlayPauseIconsChange}
+          />
+          <IconSelect
+            label="Close Icon"
+            type="close"
+            value={settings.closeIcon.replace(/bi-/g, '')}
+            onChange={handleCloseIconChange}
+          />
+
+        </FormLayout.Group>
+        
+        {/* Spectrum-specific fields */}
+        <FormLayout.Group condensed>
           <TextField
             label="Background Color"
             type="color"
             value={settings.playerBgColor}
             onChange={handleSettingChange("playerBgColor")}
-            autoComplete="off"
-          />
-          <TextField
-            label="Opacity"
-            type="number"
-            min={0}
-            max={1}
-            step={0.05}
-            value={String(settings.playerBgOpacity ?? 1)}
-            onChange={handleSettingChange("playerBgOpacity")}
             autoComplete="off"
           />
           <TextField
@@ -205,10 +245,13 @@ export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChan
             onChange={handleSettingChange("iconColor")}
             autoComplete="off"
           />
-        </FormLayout.Group>
-        
-        {/* Spectrum-specific fields */}
-        <FormLayout.Group condensed>
+          <TextField
+            label="Bar Color"
+            type="color"
+            value={settings.barColor}
+            onChange={handleSettingChange("barColor")}
+            autoComplete="off"
+          />
           <TextField
             label="Bar Count"
             type="number"
@@ -218,18 +261,37 @@ export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChan
             max={128}
             step={1}
           />
-          <TextField
-            label="Bar Color"
-            type="color"
-            value={settings.barColor}
-            onChange={handleSettingChange("barColor")}
-            autoComplete="off"
+        </FormLayout.Group>
+        <FormLayout.Group condensed>
+          <Checkbox
+            label="Auto Loop"
+            checked={settings.autoLoop}
+            onChange={handleCheckbox("autoLoop")}
+          />
+          <Checkbox
+            label="Icon On Product"
+            checked={settings.showPlayIconOnImage}
+            onChange={handleCheckbox("showPlayIconOnImage")}
+          />
+          <Checkbox
+            label="Show Title"
+            checked={settings.showTitle}
+            onChange={handleCheckbox("showTitle")}
+          />
+          <Checkbox
+            label="Show Image"
+            checked={settings.showImage}
+            onChange={handleCheckbox("showImage")}
           />
         </FormLayout.Group>
         
+          <Text variant="headingLg" as="h2">
+        Icon on Product 
+      </Text>
         <FormLayout.Group condensed>
+
           <IconSelect
-            label="Icon On Product"
+            label="Icon"
             type="icononproduct"
             value={settings.iconOnProduct.replace(/bi-/g, '').replace(/, /g, ' ')}
             onChange={handleIconOnProductChange}
@@ -266,49 +328,11 @@ export default function SpectrumForm({ initialSettings, onSubmit, onSettingsChan
             autoComplete="off"
           />
 
-          <IconSelect
-            label="Play/Pause Icons"
-            type="playpause"
-            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handlePlayPauseIconsChange}
-          />
-          <IconSelect
-            label="Next/Prev Icons"
-            type="prevnext"
-            value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handleNextPrevIconsChange}
-          />
-          <IconSelect
-            label="Close Icon"
-            type="close"
-            value={settings.closeIcon.replace(/bi-/g, '')}
-            onChange={handleCloseIconChange}
-          />
+
         </FormLayout.Group>
-        <FormLayout.Group condensed>
-          <Checkbox
-            label="Auto Loop"
-            checked={settings.autoLoop}
-            onChange={handleCheckbox("autoLoop")}
-          />
-          <Checkbox
-            label="Show Play Icon On Product Image"
-            checked={settings.showPlayIconOnImage}
-            onChange={handleCheckbox("showPlayIconOnImage")}
-          />
-          <Checkbox
-            label="Show Title"
-            checked={settings.showTitle}
-            onChange={handleCheckbox("showTitle")}
-          />
-          <Checkbox
-            label="Show Image"
-            checked={settings.showImage}
-            onChange={handleCheckbox("showImage")}
-          />
-        </FormLayout.Group>
+        
       </FormLayout>
-      <Button primary onClick={handleSubmit}>
+      <Button variant="primary" onClick={handleSubmit}>
         Save Spectrum Settings
       </Button>
     </BlockStack>

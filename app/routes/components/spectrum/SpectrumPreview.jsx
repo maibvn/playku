@@ -5,7 +5,7 @@ import SpectrumAnalyzer from "../shared/SpectrumAnalyzer";
 import IconParser from "../shared/IconParser";
 import "../shared/PlayerPreview.css";
 
-export default function SpectrumPreview({ settings, elements, demoProducts }) {
+export default function SpectrumPreview({ settings, elements, demoProducts, previewVisible = true }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerVisible, setPlayerVisible] = useState(true);
@@ -25,8 +25,7 @@ export default function SpectrumPreview({ settings, elements, demoProducts }) {
   };
 
   const handleClosePlayer = () => {
-    setPlayerVisible(false);
-    setIsPlaying(false);
+    // Disabled for preview - no action taken
   };
 
   // Handle audio ended
@@ -43,26 +42,18 @@ export default function SpectrumPreview({ settings, elements, demoProducts }) {
   const closeIconKey = settings.closeIcon;
 
   return (
-    <div>
+    <div className={`playku-fixed-section ${previewVisible ? 'playku-preview-visible' : 'playku-preview-hidden'}`}>
       {/* Product images grid */}
-      <ProductGrid
-        demoProducts={demoProducts}
-        settings={settings}
-        currentIdx={currentIdx}
-        isPlaying={isPlaying}
-        onProductClick={handleProductClick}
-        onPlayPauseClick={handlePlayPauseClick}
-      />
-
-      {/* Spectrum Player Preview Info */}
-      <Card sectioned>
-        <BlockStack gap="300">
-          <Text variant="headingMd">Spectrum Player Preview</Text>
-          <Text variant="bodyMd" tone="subdued">
-            Bar Count: {settings.barCount} | Bar Color: {settings.barColor}
-          </Text>
-        </BlockStack>
-      </Card>
+      <div className="playku-product-grid-container">
+        <ProductGrid
+          demoProducts={demoProducts}
+          settings={settings}
+          currentIdx={currentIdx}
+          isPlaying={isPlaying}
+          onProductClick={handleProductClick}
+          onPlayPauseClick={handlePlayPauseClick}
+        />
+      </div>
 
       {/* Sticky player (same style as WaveformPreview) */}
       <div

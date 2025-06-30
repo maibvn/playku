@@ -6,6 +6,7 @@ import {
   FormLayout,
   Select,
   Text,
+  InlineStack,
 } from "@shopify/polaris";
 import { useState } from "react";
 import IconSelect from "../shared/IconSelect";
@@ -42,7 +43,13 @@ const ICON_POSITION_OPTIONS = [
   { label: "Bottom Right", value: "bottom-right" },
 ];
 
-export default function LineForm({ initialSettings, onSubmit, onSettingsChange }) {
+export default function LineForm({ 
+  initialSettings, 
+  onSubmit, 
+  onSettingsChange, 
+  previewVisible = true, 
+  onTogglePreview 
+}) {
   const [settings, setSettings] = useState(initialSettings);
 
   // --- Handle settings change ---
@@ -170,9 +177,18 @@ export default function LineForm({ initialSettings, onSubmit, onSettingsChange }
 
   return (
     <BlockStack gap="300">
-      <Text variant="headingMd" as="h2">
-        Line Player Settings
-      </Text>
+      <InlineStack align="space-between">
+        <Text variant="headingMd" as="h2">
+          Line Player Settings
+        </Text>
+        <Button
+          variant={previewVisible ? "primary" : "secondary"}
+          onClick={onTogglePreview}
+          size="medium"
+        >
+          {previewVisible ? "Hide Preview" : "Show Preview"}
+        </Button>
+      </InlineStack>
       <FormLayout>
         <FormLayout.Group condensed>
           <Select
@@ -235,6 +251,9 @@ export default function LineForm({ initialSettings, onSubmit, onSettingsChange }
         </FormLayout.Group>
         
         <FormLayout.Group condensed>
+          <Text variant="headingLg" as="h2">
+        Icon on Product 
+      </Text>
           <IconSelect
             label="Icon On Product"
             type="icononproduct"
@@ -299,7 +318,7 @@ export default function LineForm({ initialSettings, onSubmit, onSettingsChange }
             onChange={handleCheckbox("autoLoop")}
           />
           <Checkbox
-            label="Show Play Icon On Product Image"
+            label="Icon On Product"
             checked={settings.showPlayIconOnImage}
             onChange={handleCheckbox("showPlayIconOnImage")}
           />
@@ -315,7 +334,7 @@ export default function LineForm({ initialSettings, onSubmit, onSettingsChange }
           />
         </FormLayout.Group>
       </FormLayout>
-      <Button primary onClick={handleSubmit}>
+      <Button onClick={handleSubmit} variant="primary">
         Save Line Settings
       </Button>
     </BlockStack>

@@ -4,7 +4,7 @@ import ProductGrid from "../shared/ProductGrid";
 import IconParser from "../shared/IconParser";
 import "../shared/PlayerPreview.css";
 
-export default function LinePreview({ settings, elements, demoProducts }) {
+export default function LinePreview({ settings, elements, demoProducts, previewVisible = true }) {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playerVisible, setPlayerVisible] = useState(true);
@@ -24,8 +24,7 @@ export default function LinePreview({ settings, elements, demoProducts }) {
   };
 
   const handleClosePlayer = () => {
-    setPlayerVisible(false);
-    setIsPlaying(false);
+    // Disabled for preview - no action taken
   };
 
   const currentProduct = demoProducts[currentIdx];
@@ -50,27 +49,21 @@ export default function LinePreview({ settings, elements, demoProducts }) {
     height: '100%',
     backgroundColor: settings.progressColor,
     borderRadius: `${settings.height / 2}px`,
-  };  return (
-    <div>
-      {/* Product images grid */}
-      <ProductGrid
-        demoProducts={demoProducts}
-        settings={settings}
-        currentIdx={currentIdx}
-        isPlaying={isPlaying}
-        onProductClick={handleProductClick}
-        onPlayPauseClick={handlePlayPauseClick}
-      />
+  };
 
-      {/* Line Player Preview Info */}
-      <Card sectioned>
-        <BlockStack gap="300">
-          <Text variant="headingMd">Line Player Preview</Text>
-          <Text variant="bodyMd" tone="subdued">
-            Progress Color: {settings.progressColor} | Track Color: {settings.trackColor} | Height: {settings.height}px
-          </Text>
-        </BlockStack>
-      </Card>
+  return (
+    <div className={`playku-fixed-section ${previewVisible ? 'playku-preview-visible' : 'playku-preview-hidden'}`}>
+      {/* Product images grid */}
+      <div className="playku-product-grid-container">
+        <ProductGrid
+          demoProducts={demoProducts}
+          settings={settings}
+          currentIdx={currentIdx}
+          isPlaying={isPlaying}
+          onProductClick={handleProductClick}
+          onPlayPauseClick={handlePlayPauseClick}
+        />
+      </div>
 
       {/* Sticky player (same style as WaveformPreview) */}
       <div

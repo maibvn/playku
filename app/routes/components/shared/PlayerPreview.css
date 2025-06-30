@@ -1,12 +1,45 @@
+/* Fixed section that contains both product grid and sticky player */
+.playku-fixed-section {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none; /* Allow clicks to pass through the container */
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Preview visibility states */
+.playku-preview-visible {
+  transform: translateY(0%);
+}
+
+.playku-preview-hidden {
+  transform: translateY(100%);
+}
+
+/* Product grid container - positioned above the sticky player */
+.playku-product-grid-container {
+  padding: 16px 24px 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  pointer-events: auto; /* Enable clicks on the grid */
+}
+
 .playku-product-grid {
   display: flex;
   gap: 48px;
-  margin-bottom: 32px;
+  margin-bottom: 0; /* Remove bottom margin since it's now part of fixed section */
+  justify-content: flex-start; /* Center left alignment instead of center */
 }
 
 .playku-product-item {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: 16px; /* Reduced margin since it's in fixed section */
 }
 
 .playku-product-img-wrap {
@@ -53,16 +86,17 @@
 
 /* Sticky player styles */
 .playku-sticky-player {
-  position: fixed;
+  position: relative; /* Changed from fixed to relative since it's now inside fixed container */
   left: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: 1001;
   width: 100%;
   display: flex;
   align-items: center;
   padding: 16px 24px;
   gap: 16px;
   box-shadow: 0 -2px 16px #0003;
+  pointer-events: auto; /* Enable clicks on the player */
 }
 
 .playku-sticky-img {
@@ -124,4 +158,15 @@
   transform: translateY(100%);
   opacity: 0;
   pointer-events: none;
+}
+
+/* Add padding to the page content to prevent overlap with fixed player section */
+.playku-page-content {
+  padding-bottom: 0; /* Default: no padding when preview is hidden */
+  transition: padding-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth transition */
+}
+
+/* Add padding only when preview is visible */
+.playku-page-content.preview-visible {
+  padding-bottom: 300px; /* Increased from 200px for better UI spacing */
 }

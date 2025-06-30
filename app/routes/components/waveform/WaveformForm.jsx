@@ -6,6 +6,7 @@ import {
   FormLayout,
   Select,
   Text,
+  InlineStack,
 } from "@shopify/polaris";
 import { useState, useEffect } from "react";
 import IconSelect from "../shared/IconSelect";
@@ -47,7 +48,9 @@ export default function WaveformForm({
   initialStyleSettings,
   onSubmit, 
   onSettingsChange,
-  onStyleSettingsChange 
+  onStyleSettingsChange,
+  previewVisible = true,
+  onTogglePreview
 }) {
   const [settings, setSettings] = useState(initialSettings);
   const [styleSettings, setStyleSettings] = useState(initialStyleSettings);
@@ -185,9 +188,18 @@ export default function WaveformForm({
 
   return (
     <BlockStack gap="300">
-      <Text variant="headingMd" as="h2">
-        Waveform Player Settings
-      </Text>
+      <InlineStack align="space-between">
+        <Text variant="headingLg" as="h2">
+          Sticky Player 
+        </Text>
+        <Button
+          variant={previewVisible ? "primary" : "secondary"}
+          onClick={onTogglePreview}
+          size="medium"
+        >
+          {previewVisible ? "Hide Preview" : "Show Preview"}
+        </Button>
+      </InlineStack>
       <FormLayout>
         <FormLayout.Group condensed>
           <Select
@@ -196,13 +208,7 @@ export default function WaveformForm({
             value={playerHeightOption}
             onChange={handlePlayerHeightChange}
           />
-          <TextField
-            label="Background Color"
-            type="color"
-            value={settings.playerBgColor}
-            onChange={handleSettingChange("playerBgColor")}
-            autoComplete="off"
-          />
+          
           <TextField
             label="Opacity"
             type="number"
@@ -213,17 +219,44 @@ export default function WaveformForm({
             onChange={handleSettingChange("playerBgOpacity")}
             autoComplete="off"
           />
+          
+          <IconSelect
+            label="Next/Prev Icons"
+            type="prevnext"
+            value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+            onChange={handleNextPrevIconsChange}
+          />
+           <IconSelect
+            label="Play/Pause Icons"
+            type="playpause"
+            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
+            onChange={handlePlayPauseIconsChange}
+          />
+          <IconSelect
+            label="Close Icon"
+            type="close"
+            value={settings.closeIcon.replace(/bi-/g, '')}
+            onChange={handleCloseIconChange}
+          />
+        </FormLayout.Group>
+        
+        {/* Waveform-specific fields */}
+        <FormLayout.Group condensed>
+          <TextField
+            label="Background Color"
+            type="color"
+            value={settings.playerBgColor}
+            onChange={handleSettingChange("playerBgColor")}
+            autoComplete="off"
+          />
           <TextField
             label="Icon Color"
             type="color"
             value={settings.iconColor}
             onChange={handleSettingChange("iconColor")}
             autoComplete="off"
+            
           />
-        </FormLayout.Group>
-        
-        {/* Waveform-specific fields */}
-        <FormLayout.Group condensed>
           <TextField
             label="Waveform Color"
             type="color"
@@ -247,10 +280,35 @@ export default function WaveformForm({
             step={1}
           />
         </FormLayout.Group>
+        <FormLayout.Group condensed>
+          <Checkbox
+            label="Auto Loop"
+            checked={settings.autoLoop}
+            onChange={handleCheckbox("autoLoop")}
+          />
+          <Checkbox
+            label="Icon On Product"
+            checked={settings.showPlayIconOnImage}
+            onChange={handleCheckbox("showPlayIconOnImage")}
+          />
+          <Checkbox
+            label="Show Title"
+            checked={settings.showTitle}
+            onChange={handleCheckbox("showTitle")}
+          />
+          <Checkbox
+            label="Show Image"
+            checked={settings.showImage}
+            onChange={handleCheckbox("showImage")}
+          />
+        </FormLayout.Group>
         
+        <Text variant="headingLg" as="h2">
+        Icon on Product 
+      </Text>
         <FormLayout.Group condensed>
           <IconSelect
-            label="Icon On Product"
+            label="Icon"
             type="icononproduct"
             value={settings.iconOnProduct.replace(/bi-/g, '').replace(/, /g, ' ')}
             onChange={handleIconOnProductChange}
@@ -287,49 +345,12 @@ export default function WaveformForm({
             autoComplete="off"
           />
 
-          <IconSelect
-            label="Play/Pause Icons"
-            type="playpause"
-            value={settings.playPauseIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handlePlayPauseIconsChange}
-          />
-          <IconSelect
-            label="Next/Prev Icons"
-            type="prevnext"
-            value={settings.nextPrevIcons.replace(/bi-/g, '').replace(/, /g, ' ')}
-            onChange={handleNextPrevIconsChange}
-          />
-          <IconSelect
-            label="Close Icon"
-            type="close"
-            value={settings.closeIcon.replace(/bi-/g, '')}
-            onChange={handleCloseIconChange}
-          />
+         
+          
         </FormLayout.Group>
-        <FormLayout.Group condensed>
-          <Checkbox
-            label="Auto Loop"
-            checked={settings.autoLoop}
-            onChange={handleCheckbox("autoLoop")}
-          />
-          <Checkbox
-            label="Show Play Icon On Product Image"
-            checked={settings.showPlayIconOnImage}
-            onChange={handleCheckbox("showPlayIconOnImage")}
-          />
-          <Checkbox
-            label="Show Title"
-            checked={settings.showTitle}
-            onChange={handleCheckbox("showTitle")}
-          />
-          <Checkbox
-            label="Show Image"
-            checked={settings.showImage}
-            onChange={handleCheckbox("showImage")}
-          />
-        </FormLayout.Group>
+        
       </FormLayout>
-      <Button primary onClick={handleSubmit}>
+      <Button variant="primary" onClick={handleSubmit}>
         Save Waveform Settings
       </Button>
     </BlockStack>
